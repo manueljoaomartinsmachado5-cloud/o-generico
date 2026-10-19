@@ -1,0 +1,14 @@
+# EXEMPLO FICTÍCIO: substituir por dados reais.
+titulo: Filme de Exemplo C
+ano: 2014
+realizacao: [realizadora-exemplo]
+generos: [documentário]
+creditos:
+  - pessoa: estudio-exemplo
+    funcao: design do genérico
+tecnicas: [tipografia sobre imagem, imagem real]
+tipografia: [sem serifa]
+cor: cor
+som: [silêncio, voz off]
+fontes:
+  - Exemplo fictício
