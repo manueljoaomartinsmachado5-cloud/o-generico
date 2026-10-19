@@ -1,0 +1,75 @@
+# Verifica o site em cada alteração e publica-o no GitHub Pages a partir do ramo main.
+# Para ativar a publicação: no repositório, Settings → Pages → Source: "GitHub Actions".
+name: Site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Verificar
+    runs-on: ubuntu-latest
+    # Verifica com o mesmo subcaminho da publicação, para apanhar links sem url().
+    env:
+      BASE_PATH: /${{ github.event.repository.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Tipos
+        run: npx astro check
+      - name: Build
+        run: npx astro build
+      - name: Links internos
+        run: node scripts/check-links.mjs
+      - run: npx playwright install --with-deps chromium
+      - name: Acessibilidade
+        run: node scripts/check-a11y.mjs
+
+  deploy:
+    name: Publicar
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build
+        run: npx astro build
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - name: Links internos
+        run: node scripts/check-links.mjs
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

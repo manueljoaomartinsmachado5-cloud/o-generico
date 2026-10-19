@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import { nav } from '../lib/nav';
+import { url } from '../lib/url';
+---
+
+<Base>
+  <section class="container hero">
+    <p class="eyebrow">Arquivo e análise de genéricos do cinema português</p>
+    <h1>O Genérico</h1>
+    <p class="lead">
+      A sequência de abertura de um filme apresenta o título, o elenco e a equipa criativa. Mas
+      também estabelece o tom e a atmosfera da obra, através da tipografia, da composição gráfica,
+      da animação, do ritmo e do som. O Genérico reúne, estuda e relaciona os genéricos do cinema
+      português enquanto objetos de design.
+    </p>
+  </section>
+
+  <section class="container" aria-labelledby="seccoes">
+    <h2 id="seccoes" class="eyebrow">Secções</h2>
+    <ul class="sections">
+      {
+        nav.map((item) => (
+          <li>
+            <a href={url(item.path)}>{item.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--space-6) var(--space-5);
+  }
+
+  h1 {
+    font-size: var(--text-display);
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-4);
+  }
+
+  .lead {
+    font-size: var(--text-lg);
+    line-height: 1.5;
+  }
+
+  .sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--color-border);
+    border: 1px solid var(--color-border);
+  }
+
+  .sections a {
+    display: block;
+    padding: var(--space-4) var(--space-3);
+    background: var(--color-bg);
+    text-decoration: none;
+  }
+
+  .sections a:hover {
+    background: var(--color-surface);
+  }
+
+  .sections a:focus-visible {
+    outline-offset: -4px;
+  }
+</style>

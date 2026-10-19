@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+
+<Base title="Página não encontrada">
+  <section class="container notfound">
+    <p class="eyebrow">Erro 404</p>
+    <h1>Página não encontrada</h1>
+    <p>Esta página não existe ou mudou de endereço.</p>
+    <p><a href={url('/')}>Voltar ao início</a></p>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    padding-block: var(--space-6);
+  }
+</style>
