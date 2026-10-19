@@ -49,7 +49,8 @@ Cada genérico é um ficheiro YAML em `src/content/genericos/`, e cada pessoa ou
 
 - Os nomes dos ficheiros são o identificador: usa minúsculas, sem acentos e com hífenes (`manoel-de-oliveira.yaml`).
 - Para referir uma pessoa num genérico, escreve o nome do ficheiro dela sem `.yaml`.
-- Se um campo estiver mal preenchido (pessoa inexistente, valor fora do vocabulário, ano impossível), o build falha e diz qual é o ficheiro e o campo.
+- Os `creditos` são só de quem fez o genérico, não da equipa do filme.
+- Se um campo estiver mal preenchido ou mal escrito (pessoa inexistente, valor fora do vocabulário, ano impossível, `duração` em vez de `duracao`), o build falha e diz qual é o ficheiro e o campo.
 
 ## Publicação
 

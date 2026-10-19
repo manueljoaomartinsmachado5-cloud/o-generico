@@ -13,15 +13,17 @@ const COR = ['preto e branco', 'cor', 'monocromático'] as const;
 const SOM = ['música original', 'música pré-existente', 'silêncio', 'diálogo', 'efeitos sonoros', 'voz off'] as const;
 
 // reference() não confirma que a pessoa existe; isto faz o build falhar se o id estiver errado.
+// Lê a pasta a cada validação (funciona em `astro dev` sem reiniciar) e exige ids em minúsculas
+// com hífenes, para coincidirem com os ids que o Astro gera a partir dos nomes dos ficheiros.
 const PESSOAS_DIR = './src/content/pessoas';
-const pessoaIds = new Set(readdirSync(PESSOAS_DIR).filter((f) => f.endsWith('.yaml')).map((f) => f.slice(0, -5)));
-const pessoa = reference('pessoas').refine((p) => pessoaIds.has(p.id), {
-  error: (iss) => `Pessoa "${(iss.input as { id: string }).id}" não existe em ${PESSOAS_DIR}/`,
-});
+const pessoa = reference('pessoas').refine(
+  (p) => /^[a-z0-9-]+$/.test(p.id) && readdirSync(new URL('./content/pessoas/', import.meta.url)).includes(`${p.id}.yaml`),
+  { error: (iss) => `Pessoa "${(iss.input as { id: string }).id}" não existe: tem de haver ${PESSOAS_DIR}/<id>.yaml, com o nome em minúsculas e hífenes` },
+);
 
 const pessoas = defineCollection({
   loader: glob({ pattern: '*.yaml', base: PESSOAS_DIR }),
-  schema: z.object({
+  schema: z.strictObject({
     nome: z.string(),
     tipo: z.enum(['pessoa', 'estúdio']).default('pessoa'),
     nota: z.string().optional(),
@@ -30,18 +32,19 @@ const pessoas = defineCollection({
 
 const genericos = defineCollection({
   loader: glob({ pattern: '*.yaml', base: './src/content/genericos' }),
-  schema: z.object({
+  schema: z.strictObject({
     titulo: z.string(),
     ano: z.number().int().min(1896).max(2100),
     realizacao: z.array(pessoa).min(1),
     generos: z.array(z.enum(GENEROS)).min(1),
+    // Só quem fez o genérico, não a equipa do filme (a realização do filme vai em `realizacao`).
     creditos: z.array(z.object({ pessoa, funcao: z.enum(FUNCOES) })).default([]),
     duracao: z.number().positive().optional(), // segundos
     tecnicas: z.array(z.enum(TECNICAS)).default([]),
     tipografia: z.array(z.enum(TIPOGRAFIA)).default([]),
     cor: z.enum(COR).optional(),
     som: z.array(z.enum(SOM)).default([]),
-    video: z.url().optional(),
+    video: z.httpUrl().optional(),
     analise: z.string().optional(),
     fontes: z.array(z.string()).default([]),
   }),
