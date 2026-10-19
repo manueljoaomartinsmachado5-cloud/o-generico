@@ -19,6 +19,9 @@ jobs:
   check:
     name: Verificar
     runs-on: ubuntu-latest
+    # Verifica com o mesmo subcaminho da publicação, para apanhar links sem url().
+    env:
+      BASE_PATH: /${{ github.event.repository.name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

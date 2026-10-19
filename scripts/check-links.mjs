@@ -3,7 +3,9 @@
 import { readFile } from 'node:fs/promises';
 import { BASE, htmlFiles, publicPath, resolvePath } from './pages.mjs';
 
-const ATTR = /\s(?:href|src)="([^"]+)"/g;
+// ponytail: não lê srcset nem descodifica entidades HTML (&amp;, &#39;) nos caminhos.
+// Chega enquanto os slugs forem ASCII e os srcset vierem só do Astro.
+const ATTR = /\s(?:href|src|poster)="([^"]+)"/gi;
 const files = await htmlFiles();
 const broken = [];
 

@@ -3,8 +3,9 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const DIST = new URL('../dist/', import.meta.url).pathname;
+export const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 export const BASE = ('/' + (process.env.BASE_PATH || '/').replace(/^\/|\/$/g, '') + '/').replace('//', '/');
 
 export async function htmlFiles(dir = DIST) {
@@ -26,9 +27,15 @@ export function publicPath(file) {
 /** Ficheiro em dist/ que corresponde a um caminho público, ou null se não existir. */
 export async function resolvePath(pathname) {
   if (!pathname.startsWith(BASE)) return null;
-  let rel = decodeURIComponent(pathname.slice(BASE.length));
+  let rel;
+  try {
+    rel = decodeURIComponent(pathname.slice(BASE.length));
+  } catch {
+    return null; // '%' inválido no caminho
+  }
   if (rel === '' || rel.endsWith('/')) rel += 'index.html';
   const file = join(DIST, rel);
+  if (!file.startsWith(DIST)) return null; // '..' a sair de dist/
   try {
     return (await stat(file)).isFile() ? file : null;
   } catch {
