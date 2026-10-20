@@ -1,74 +1,877 @@
 ---
+import { getCollection, getEntries } from 'astro:content';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import { nav } from '../lib/nav';
 import { url } from '../lib/url';
+import capa from '../assets/images/capa-tabu.jpg';
+
+const heroLines = [
+  'Uma plataforma digital para explorar,',
+  'comparar e contextualizar a abertura',
+  'visual do cinema português',
+];
+
+const manifesto =
+  'A sequência de abertura de um filme apresenta o título, o elenco e a equipa criativa. Mas também estabelece o tom e a atmosfera da obra.';
+const words = manifesto.split(' ');
+
+const genericos = await Promise.all(
+  (await getCollection('genericos'))
+    .sort((a, b) => a.data.ano - b.data.ano)
+    .map(async ({ data }) => ({
+      ...data,
+      realizacao: (await getEntries(data.realizacao)).map((p) => p.data.nome).join(', '),
+    })),
+);
+
+const elementos = ['Tipografia', 'Composição gráfica', 'Animação', 'Ritmo', 'Som', 'Motion graphics'];
+
+const entradas = [
+  {
+    label: 'Arquivo',
+    path: '/arquivo/',
+    text: 'Todos os genéricos catalogados, com pesquisa e filtros.',
+  },
+  {
+    label: 'Linha temporal',
+    path: '/linha-temporal/',
+    text: 'Os genéricos no tempo: tendências, influências e mudanças.',
+  },
+  {
+    label: 'Autores',
+    path: '/autores/',
+    text: 'Designers, realizadores, animadores e estúdios.',
+  },
+  {
+    label: 'Explorar',
+    path: '/explorar/',
+    text: 'Relações entre genéricos, a partir de qualquer obra.',
+  },
+];
 ---
 
-<Base>
-  <section class="container hero">
-    <p class="eyebrow">Arquivo e análise de genéricos do cinema português</p>
-    <h1>O Genérico</h1>
-    <p class="lead">
-      A sequência de abertura de um filme apresenta o título, o elenco e a equipa criativa. Mas
-      também estabelece o tom e a atmosfera da obra, através da tipografia, da composição gráfica,
-      da animação, do ritmo e do som. O Genérico reúne, estuda e relaciona os genéricos do cinema
-      português enquanto objetos de design.
-    </p>
+<Base headerTone="dark">
+  <section class="hero" data-hero aria-labelledby="hero-titulo">
+    <Image
+      class="hero-img"
+      src={capa}
+      alt=""
+      widths={[720, 1280, 1920, 2800]}
+      sizes="(max-aspect-ratio: 2/1) 200vh, 100vw"
+      loading="eager"
+      fetchpriority="high"
+      data-parallax
+    />
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="container hero-content">
+      <h1 id="hero-titulo" class="hero-title">
+        {
+          heroLines.map((line, i) => (
+            <span class="line">
+              <span style={`--i: ${i}`}>{line} </span>
+            </span>
+          ))
+        }
+      </h1>
+      <p class="caption hero-caption">
+        <span>Imagem de capa</span>
+        <span>“Tabu” (2012), Miguel Gomes</span>
+      </p>
+    </div>
+    <div class="container hero-foot caption" aria-hidden="true">
+      <span data-timecode>00:00:00:00</span>
+      <span class="cue">Deslizar</span>
+    </div>
   </section>
 
-  <section class="container" aria-labelledby="seccoes">
-    <h2 id="seccoes" class="eyebrow">Secções</h2>
-    <ul class="sections">
+  <section class="manifesto" aria-labelledby="manifesto-titulo">
+    <div class="container manifesto-grid">
+      <h2 id="manifesto-titulo" class="caption label">O que é um genérico</h2>
+      <p class="manifesto-text" data-words style={`--n: ${words.length}`}>
+        {words.map((w, i) => <span class="w" style={`--i: ${i}`}>{w} </span>)}
+      </p>
+      <div class="manifesto-aside" data-reveal>
+        <p>
+          O tom constrói-se com a tipografia, a composição gráfica, a animação, o ritmo e o som. O
+          Genérico reúne, estuda e relaciona os genéricos do cinema português enquanto objetos de
+          design.
+        </p>
+        <a class="button button--accent" href={url('/arquivo/')}>
+          Explorar o arquivo <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="featured" aria-labelledby="destaques-titulo" data-carousel>
+    <div class="container featured-head">
+      <h2 id="destaques-titulo" class="section-title">Genéricos em destaque</h2>
+      <p class="caption note">Exemplos provisórios, até entrarem os primeiros genéricos do arquivo</p>
+      <div class="controls">
+        <button type="button" class="round" data-prev aria-controls="destaques" aria-label="Anterior">←</button>
+        <button type="button" class="round" data-next aria-controls="destaques" aria-label="Seguinte">→</button>
+      </div>
+    </div>
+    <ul class="track" id="destaques" tabindex="0" aria-label="Genéricos em destaque">
       {
-        nav.map((item) => (
-          <li>
-            <a href={url(item.path)}>{item.label}</a>
+        genericos.map((g, i) => (
+          <li class="slide">
+            <article aria-labelledby={`destaque-${i}`}>
+              <div class:list={['frame', `frame--${i % 3}`]} aria-hidden="true">
+                <span class="tag">Exemplo fictício</span>
+                <span class="frame-credit">Um filme de {g.realizacao}</span>
+                <span class="frame-title" data-reveal>
+                  {g.titulo}
+                </span>
+                <span class="frame-year">{g.ano}</span>
+              </div>
+              <div class="slide-meta">
+                <h3 id={`destaque-${i}`}>{g.titulo}</h3>
+                <span>{g.ano}</span>
+              </div>
+              <p class="caption slide-info">
+                {g.realizacao} · {g.tecnicas.join(', ')}
+              </p>
+            </article>
           </li>
         ))
       }
     </ul>
+    <div class="container">
+      <div class="progress" aria-hidden="true"><span></span></div>
+    </div>
   </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      {
+        [0, 1].map(() => (
+          <span class="marquee-group">
+            {elementos.map((e) => (
+              <>
+                <span class="marquee-item">{e}</span>
+                <span class="dot" />
+              </>
+            ))}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+
+  <section class="entries" aria-labelledby="entradas-titulo">
+    <div class="container">
+      <h2 id="entradas-titulo" class="section-title" data-reveal>Por onde começar</h2>
+      <ul class="cards">
+        {
+          entradas.map((e, i) => (
+            <li data-reveal style={`--delay: ${i}`}>
+              <a class="card" href={url(e.path)}>
+                <span class="caption">0{i + 1}</span>
+                <span class:list={['shape', `shape--${i}`]} aria-hidden="true" />
+                <span class="card-title">{e.label}</span>
+                <span class="card-text">{e.text}</span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="project" aria-labelledby="projeto-titulo">
+    <div class="container project-grid">
+      <div data-reveal>
+        <h2 id="projeto-titulo" class="section-title">O projeto</h2>
+        <p class="project-text">
+          O Genérico é um projeto de dissertação do Mestrado em Design e Multimédia da Faculdade de
+          Ciências e Tecnologia da Universidade de Coimbra, com o apoio da Cinemateca Portuguesa –
+          Museu do Cinema.
+        </p>
+        <a class="button button--ghost" href={url('/sobre/')}>
+          Sobre o projeto <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <dl class="facts">
+        <div data-reveal style="--delay: 1">
+          <dt class="caption">Mestrado</dt>
+          <dd>Design e Multimédia</dd>
+        </div>
+        <div data-reveal style="--delay: 2">
+          <dt class="caption">Instituição</dt>
+          <dd>FCTUC, Universidade de Coimbra</dd>
+        </div>
+        <div data-reveal style="--delay: 3">
+          <dt class="caption">Apoio</dt>
+          <dd>Cinemateca Portuguesa – Museu do Cinema</dd>
+        </div>
+        <div data-reveal style="--delay: 4">
+          <dt class="caption">Ano letivo</dt>
+          <dd>2026/2027</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+  <script>
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Ligados ao scroll, para nada se mexer sozinho (WCAG 2.2.2):
+    // o código de tempo avança uma imagem (1/24 s) por píxel e a faixa desliza.
+    const tc = document.querySelector('[data-timecode]');
+    const marquee = document.querySelector<HTMLElement>('.marquee-track');
+    const pad = (n: number) => String(n).padStart(2, '0');
+    let half = 0;
+    const measure = () => (half = (marquee?.scrollWidth ?? 0) / 2);
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      if (tc && scrollY < innerHeight) {
+        const f = Math.round(scrollY);
+        const s = Math.floor(f / 24);
+        tc.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f % 24)}`;
+      }
+      if (marquee && half && !reduce) marquee.style.transform = `translateX(${-((scrollY * 0.4) % half)}px)`;
+    };
+    addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    addEventListener('resize', measure);
+    document.fonts.ready.then(measure);
+    measure();
+    update();
+
+    // Carrossel: scroll nativo (toque, trackpad, teclado) + botões e barra de progresso.
+    for (const root of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+      const track = root.querySelector<HTMLElement>('.track')!;
+      const thumb = root.querySelector<HTMLElement>('.progress span')!;
+      const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+      const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+      const step = (dir: number) =>
+        track.scrollBy({
+          left: dir * (track.querySelector('li')?.offsetWidth ?? 0),
+          behavior: reduce ? 'auto' : 'smooth',
+        });
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+
+      const update = () => {
+        const max = track.scrollWidth - track.clientWidth;
+        const frac = track.clientWidth / track.scrollWidth;
+        const p = max > 0 ? track.scrollLeft / max : 0;
+        thumb.style.width = `${frac * 100}%`;
+        thumb.style.transform = `translateX(${p * (1 / frac - 1) * 100}%)`;
+        // aria-disabled em vez de disabled, para o botão não perder o foco do teclado
+        prev.setAttribute('aria-disabled', String(track.scrollLeft <= 1));
+        next.setAttribute('aria-disabled', String(track.scrollLeft >= max - 1));
+      };
+      track.addEventListener('scroll', update, { passive: true });
+      addEventListener('resize', update);
+      update();
+    }
+  </script>
 </Base>
 
 <style>
+  /* Capa */
   .hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 100svh;
+    padding-top: var(--header-h);
+    overflow: hidden;
+    background: var(--color-night);
+    color: var(--color-night-text);
+  }
+
+  .hero-img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    translate: 0 var(--py, 0px);
+    scale: 1.06;
+    animation: hero-in 2.2s var(--ease-out) both;
+  }
+
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      scale: 1.18;
+    }
+  }
+
+  .hero-shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.18) 48%, rgba(0, 0, 0, 0.5) 100%),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  /* Grão de película */
+  .hero-shade::after {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    opacity: 0.14;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 0.9s steps(6) 5;
+  }
+
+  @keyframes grain {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-8%, 5%); }
+    40% { transform: translate(6%, -9%); }
+    60% { transform: translate(-4%, 11%); }
+    80% { transform: translate(10%, 3%); }
+    100% { transform: translate(-6%, -6%); }
+  }
+
+  .hero-content {
+    padding-bottom: clamp(6rem, 16vh, 11rem);
+  }
+
+  .hero-title {
+    font-weight: 500;
+    font-size: clamp(1.9rem, 1.1rem + 2.4vw, 3.25rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+  }
+
+  .line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+
+  .line > span {
+    display: block;
+    animation: line-in 1.2s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 110ms + 350ms);
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes line-in {
+    from {
+      transform: translateY(105%);
+    }
+  }
+
+  .hero-caption {
+    display: grid;
+    margin-top: var(--space-4);
+    color: rgba(245, 245, 243, 0.78);
+    animation: rise 1s var(--ease-out) 900ms both;
+  }
+
+  .hero-foot {
+    position: absolute;
+    inset: auto 0 0;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: var(--space-4);
+    color: rgba(245, 245, 243, 0.78);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cue {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .cue::after {
+    content: '';
+    width: 1px;
+    height: 2.5rem;
+    background: currentColor;
+    transform-origin: top;
+    animation: cue 2.2s var(--ease-out) 2 forwards;
+  }
+
+  @keyframes cue {
+    0% { transform: translateY(0) scaleY(0); }
+    50% { transform: translateY(0) scaleY(1); }
+    100% { transform: translateY(100%) scaleY(0); }
+  }
+
+  /* Manifesto */
+  .manifesto {
+    padding-block: var(--space-7);
+  }
+
+  .manifesto-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
+  }
+
+  .label {
+    grid-column: 1 / 4;
+    padding-top: 0.9em;
+    color: var(--color-graphite);
+  }
+
+  .manifesto-text {
+    grid-column: 4 / -1;
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .manifesto-aside {
+    grid-column: 8 / -1;
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    color: var(--color-graphite);
+  }
+
+  /* Sem JavaScript os botões não fazem nada; o carrossel continua a deslizar */
+  :global(html:not(.js)) .controls {
+    display: none;
+  }
+
+  /* Destaques */
+  .featured {
+    padding-bottom: var(--space-7);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .featured-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: var(--space-3) var(--space-4);
     padding-block: var(--space-6) var(--space-5);
   }
 
-  h1 {
-    font-size: var(--text-display);
-    letter-spacing: -0.03em;
-    margin-bottom: var(--space-4);
+  .note {
+    grid-row: 2;
+    color: var(--color-graphite);
   }
 
-  .lead {
-    font-size: var(--text-lg);
-    line-height: 1.5;
+  .controls {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    display: flex;
+    gap: var(--space-2);
   }
 
-  .sections {
+  .round {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-    gap: 1px;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: none;
+    color: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition:
+      background-color 240ms ease,
+      color 240ms ease,
+      opacity 240ms ease;
+  }
+
+  .round:hover:not([aria-disabled='true']) {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .round[aria-disabled='true'] {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .track {
+    --edge: max(var(--gutter), (100% - var(--width-content)) / 2 + var(--gutter));
+    display: flex;
+    gap: var(--space-4);
     margin: 0;
+    padding: 0 var(--edge);
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: none;
+  }
+
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .track:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .slide {
+    flex: 0 0 min(80vw, 54rem);
+    scroll-snap-align: start;
+  }
+
+  .frame {
+    position: relative;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-3);
+    aspect-ratio: 16 / 9;
+    padding: var(--space-5);
+    border-radius: var(--radius-control);
+    background: var(--color-night);
+    color: var(--color-night-text);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .tag {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    padding: 0.3rem 0.7rem;
+    border: 1px solid rgba(245, 245, 243, 0.35);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-caption);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .frame-credit,
+  .frame-year {
+    font-size: var(--text-caption);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--color-night-muted);
+  }
+
+  .frame-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 1rem + 3vw, 3.75rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Três composições de cartão de título, para variar o ritmo */
+  .frame--1 {
+    place-content: end start;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .frame--1 .frame-title {
+    font-style: italic;
+  }
+
+  .frame--2 .frame-title {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .slide-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .slide-meta h3 {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .slide-info {
+    margin-top: var(--space-1);
+    color: var(--color-graphite);
+  }
+
+  .progress {
+    position: relative;
+    width: min(16.8rem, 100%);
+    height: 2px;
+    margin: var(--space-5) auto 0;
+    background: var(--color-mist);
+  }
+
+  .progress span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--color-ink);
+    transition: transform 160ms linear;
+  }
+
+  /* Faixa */
+  .marquee {
+    overflow: hidden;
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--color-line);
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+
+  .marquee-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .marquee-item {
+    padding-inline: var(--space-4);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+
+  .marquee-item:nth-child(4n + 3) {
+    font-style: italic;
+  }
+
+  .dot {
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: currentColor;
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+  }
+
+  /* Entradas */
+  .entries {
+    padding-block: var(--space-7);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-5) 0 0;
     padding: 0;
     list-style: none;
-    background: var(--color-border);
-    border: 1px solid var(--color-border);
   }
 
-  .sections a {
-    display: block;
-    padding: var(--space-4) var(--space-3);
-    background: var(--color-bg);
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    min-height: 24rem;
+    padding: var(--space-4);
+    border-radius: var(--radius-card);
+    background: var(--color-panel);
     text-decoration: none;
+    transition: background-color 400ms ease;
   }
 
-  .sections a:hover {
-    background: var(--color-surface);
+  .card:hover {
+    background: var(--color-mist);
   }
 
-  .sections a:focus-visible {
-    outline-offset: -4px;
+  .card .caption {
+    color: var(--color-graphite);
+  }
+
+  .card-title {
+    margin-top: auto;
+    font-family: var(--font-display);
+    font-size: var(--text-heading);
+    line-height: 1.1;
+  }
+
+  .card-text {
+    min-height: 3lh; /* títulos alinhados mesmo com descrições de alturas diferentes */
+    color: var(--color-graphite);
+    font-size: var(--text-sm);
+  }
+
+  .card .arrow {
+    margin-top: var(--space-3);
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .card:hover .arrow {
+    transform: translateX(6px);
+  }
+
+  /* Formas do logótipo, que se transformam ao passar o rato */
+  .shape {
+    margin-top: var(--space-5);
+    width: 5.5rem;
+    height: 5.5rem;
+    background: var(--color-ink);
+    transition:
+      transform 700ms var(--ease-out),
+      border-radius 700ms var(--ease-out),
+      width 700ms var(--ease-out),
+      box-shadow 700ms var(--ease-out);
+  }
+
+  .shape--0 {
+    border-radius: 50%;
+  }
+
+  .card:hover .shape--0 {
+    border-radius: 50% 50% 0 0;
+  }
+
+  .shape--1 {
+    height: 1.4rem;
+    border-radius: var(--radius-pill);
+  }
+
+  .card:hover .shape--1 {
+    width: 100%;
+  }
+
+  .shape--2 {
+    height: 2.75rem;
+    border-radius: 5.5rem 5.5rem 0 0;
+  }
+
+  .card:hover .shape--2 {
+    transform: translateY(2.75rem) rotate(180deg);
+  }
+
+  .shape--3 {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    box-shadow: 2rem 0 0 0 var(--color-ink);
+  }
+
+  .card:hover .shape--3 {
+    box-shadow: 4.5rem 0 0 0 var(--color-ink);
+  }
+
+  /* Projeto */
+  .project {
+    padding-block: var(--space-7);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .project-text {
+    max-width: var(--width-text);
+    margin-block: var(--space-4) var(--space-5);
+    color: var(--color-graphite);
+  }
+
+  .facts {
+    margin: 0;
+  }
+
+  .facts div {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .facts dt {
+    padding-top: 0.35em;
+    color: var(--color-graphite);
+  }
+
+  .facts dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-heading);
+    line-height: 1.2;
+  }
+
+  @media (max-width: 61.99rem) {
+    .label,
+    .manifesto-text,
+    .manifesto-aside {
+      grid-column: 1 / -1;
+    }
+
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 35.99rem) {
+    /* As linhas da capa correm seguidas em ecrãs estreitos */
+    .line,
+    .line > span {
+      display: inline;
+    }
+
+    .line > span {
+      animation-name: fade-in;
+    }
+
+    .frame-credit,
+    .frame-year {
+      display: none;
+    }
+
+    .frame-title {
+      font-size: 1.25rem;
+    }
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
+
+    .card {
+      min-height: 18rem;
+    }
+
+    .featured-head {
+      grid-template-columns: 1fr;
+    }
+
+    .controls {
+      grid-row: auto;
+      grid-column: 1;
+    }
+
+    .facts div {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
   }
 </style>

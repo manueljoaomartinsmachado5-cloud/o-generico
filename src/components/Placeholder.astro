@@ -1,25 +1,43 @@
 ---
-// Conteúdo provisório das secções que ainda não foram construídas.
+// Página simples: secções que ainda não foram construídas e erros.
 interface Props {
   title: string;
-  phase: string;
+  label?: string;
 }
 
-const { title, phase } = Astro.props;
+const { title, label = 'Em construção' } = Astro.props;
 ---
 
 <section class="container placeholder">
-  <p class="eyebrow">Em construção · {phase}</p>
-  <h1>{title}</h1>
-  <slot />
+  <p class="caption" data-reveal>{label}</p>
+  <h1 data-reveal style="--delay: 1">{title}</h1>
+  <div class="text" data-reveal style="--delay: 2"><slot /></div>
 </section>
 
 <style>
   .placeholder {
-    padding-block: var(--space-6);
+    padding-block: calc(var(--header-h) + var(--space-7)) var(--space-7);
+  }
+
+  .caption {
+    color: var(--color-graphite);
   }
 
   h1 {
-    font-size: var(--text-xl);
+    margin-block: var(--space-4) var(--space-5);
+    font-size: clamp(3.5rem, 1.5rem + 9vw, 10rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .text {
+    max-width: var(--width-text);
+    font-size: var(--text-heading);
+    line-height: 1.35;
+    color: var(--color-graphite);
+  }
+
+  .text :global(p + p) {
+    margin-top: var(--space-3);
   }
 </style>

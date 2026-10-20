@@ -13,7 +13,8 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch(
   process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
 );
-const context = await browser.newContext();
+// Com movimento reduzido tudo aparece logo (sem revelações nem texto esbatido à espera do scroll).
+const context = await browser.newContext({ reducedMotion: 'reduce' });
 const page = await context.newPage();
 
 let total = 0;
