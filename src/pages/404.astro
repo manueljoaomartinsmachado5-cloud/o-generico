@@ -1,19 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
+import Placeholder from '../components/Placeholder.astro';
 import { url } from '../lib/url';
 ---
 
 <Base title="Página não encontrada">
-  <section class="container notfound">
-    <p class="eyebrow">Erro 404</p>
-    <h1>Página não encontrada</h1>
+  <Placeholder title="Página não encontrada" label="Erro 404">
     <p>Esta página não existe ou mudou de endereço.</p>
     <p><a href={url('/')}>Voltar ao início</a></p>
-  </section>
+  </Placeholder>
 </Base>
-
-<style>
-  .notfound {
-    padding-block: var(--space-6);
-  }
-</style>
