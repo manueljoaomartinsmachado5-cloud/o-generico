@@ -1,0 +1,17 @@
+# EXEMPLO FICTÍCIO: substituir por dados reais.
+titulo: Filme de Exemplo B
+ano: 1987
+realizacao: [realizadora-exemplo]
+generos: [comédia, musical]
+creditos:
+  - pessoa: estudio-exemplo
+    funcao: animação
+  - pessoa: designer-exemplo
+    funcao: tipografia
+duracao: 140
+tecnicas: [tipografia animada, animação 2D]
+tipografia: [desenhada à mão]
+cor: cor
+som: [música pré-existente, efeitos sonoros]
+fontes:
+  - Exemplo fictício

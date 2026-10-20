@@ -43,6 +43,15 @@ scripts/          verificações automáticas de links e acessibilidade
 
 Os links internos usam sempre `url('/caminho/')` (de `src/lib/url.ts`), para o site funcionar tanto na raiz de um domínio como num subcaminho do GitHub Pages.
 
+## Catalogar um genérico
+
+Cada genérico é um ficheiro YAML em `src/content/genericos/`, e cada pessoa ou estúdio é um ficheiro em `src/content/pessoas/`. Os campos e os valores aceites estão em `src/content.config.ts`. Os exemplos `exemplo-*.yaml` são fictícios e servem de modelo.
+
+- Os nomes dos ficheiros são o identificador: usa minúsculas, sem acentos e com hífenes (`manoel-de-oliveira.yaml`).
+- Para referir uma pessoa num genérico, escreve o nome do ficheiro dela sem `.yaml`.
+- Os `creditos` são só de quem fez o genérico, não da equipa do filme.
+- Se um campo estiver mal preenchido ou mal escrito (pessoa inexistente, valor fora do vocabulário, ano impossível, `duração` em vez de `duracao`), o build falha e diz qual é o ficheiro e o campo.
+
 ## Publicação
 
 O workflow `.github/workflows/site.yml` verifica o site em cada *pull request* e publica-o no GitHub Pages a cada alteração no ramo `main`. Para o ativar, vai às definições do repositório, em **Settings → Pages**, e escolhe **Source: GitHub Actions**.
@@ -50,3 +59,5 @@ O workflow `.github/workflows/site.yml` verifica o site em cada *pull request* e
 ## Estado
 
 **Fase 0 (Fundações):** estrutura do projeto, página-esqueleto com cabeçalho, navegação e rodapé, páginas provisórias das secções e verificações automáticas. A identidade visual é provisória: entra na Fase 2.
+
+**Fase 1 (Modelo de dados):** coleções de genéricos e pessoas validadas no build, com vocabulários provisórios e três exemplos fictícios. Falta substituir os exemplos pelos genéricos-piloto reais e afinar os campos com os critérios de análise.

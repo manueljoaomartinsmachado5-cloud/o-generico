@@ -1,0 +1,18 @@
+# EXEMPLO FICTÍCIO: substituir por dados reais.
+titulo: Filme de Exemplo A
+ano: 1968
+realizacao: [realizadora-exemplo]
+generos: [drama]
+creditos:
+  - pessoa: designer-exemplo
+    funcao: design do genérico
+duracao: 95
+tecnicas: [tipografia sobre fundo]
+tipografia: [serifada]
+cor: preto e branco
+som: [música original]
+analise: >
+  Texto de análise fictício. Aqui entra a leitura crítica do genérico:
+  composição, tipografia, ritmo e relação com o som.
+fontes:
+  - Exemplo fictício
