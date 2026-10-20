@@ -1,7 +1,7 @@
 ---
 // Logótipo em contornos (Inner + G em Decohaus Begora), para animar sem depender das fontes.
 // Unidades da fonte (1000/em), com a linha de base em y = 0.
-// `clipId`: versão animada (ver src/lib/logo-morph.ts); tem de ser única na página.
+// `clipId`: versão animada (ver src/lib/logo-morph.ts); tem de ser único na página.
 interface Props {
   clipId?: string;
   class?: string;
@@ -24,7 +24,7 @@ const { clipId, class: className } = Astro.props;
     clipId ? (
       <>
         <clipPath id={clipId}>
-          <rect x="1754" y="-1100" width="6000" height="1200" />
+          <rect class="logo-clip" x="1754" y="-1100" width="6000" height="1200" />
         </clipPath>
         <g clip-path={`url(#${clipId})`}>
           <path class="logo-rest" d="M1826 -700H2526V-495H2154V-452H2526V-248H2154V-204H2526V0H1826Z M2610 -700 2981 -486V-700H3310V0L2938 -214V0H2610Z M3670 -743 3658 -1011 3830 -964ZM3394 -700H4094V-496H3722V-452H4094V-248H3722V-205H4094V0H3394Z M4177 -700H4629Q4731 -700 4804 -627Q4877 -554 4877 -452Q4877 -382 4840.5 -323Q4804 -264 4743 -232L4877 0H4549V-232H4505V0H4177Z M5265 0H4937V-700H5265Z M5671 -700Q5767 -700 5847.5 -652.5Q5928 -605 5974 -525L5671 -350L5974 -175Q5928 -95 5847.5 -47.5Q5767 0 5671 0Q5576 0 5495.5 -47Q5415 -94 5368 -174.5Q5321 -255 5321 -350Q5321 -445 5368 -525.5Q5415 -606 5495.5 -653Q5576 -700 5671 -700Z M6041 -174.5Q5994 -255 5994 -350Q5994 -445 6041 -525.5Q6088 -606 6168.5 -653Q6249 -700 6344 -700Q6439 -700 6519.5 -653Q6600 -606 6647 -525.5Q6694 -445 6694 -350Q6694 -255 6647 -174.5Q6600 -94 6519.5 -47Q6439 0 6344 0Q6249 0 6168.5 -47Q6088 -94 6041 -174.5Z" />

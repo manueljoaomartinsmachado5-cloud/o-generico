@@ -3,19 +3,13 @@ import Logo from './Logo.astro';
 import { nav } from '../lib/nav';
 import { url } from '../lib/url';
 
-interface Props {
-  // 'dark': começa transparente sobre uma capa escura (página inicial).
-  tone?: 'dark' | 'light';
-}
-
-const { tone = 'light' } = Astro.props;
 const current = Astro.url.pathname;
 const isCurrent = (path: string) =>
   path === '/' ? current === url('/') : current.startsWith(url(path));
 const groups = [nav.slice(0, 3), nav.slice(3)];
 ---
 
-<header class="site-header" data-tone={tone}>
+<header class="site-header">
   <nav class="container bar" aria-label="Principal">
     {
       groups.map((items, i) => (
@@ -54,40 +48,49 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
 </header>
 
 <script>
-  import { ease, morphLogo } from '../lib/logo-morph';
+  import { ease, logoTween } from '../lib/logo-morph';
 
   const header = document.querySelector<HTMLElement>('.site-header')!;
-  const logo = header.querySelector<SVGSVGElement>('[data-logo]')!;
-  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  const brand = header.querySelector<HTMLElement>('.brand')!;
+  const logo = brand.querySelector<SVGSVGElement>('[data-logo]')!;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-  // O logótipo recolhe nos primeiros ~40% do ecrã de scroll; o fundo fica sólido depois da capa.
-  let ticking = false;
-  let last = -1;
-  function update() {
-    ticking = false;
-    const range = Math.min(innerHeight * 0.4, 360);
-    const p = reduce.matches ? Number(scrollY > range / 2) : Math.min(scrollY / range, 1);
-    if (p !== last) {
-      last = p;
-      morphLogo(logo, p);
-      header.style.setProperty('--e', String(ease(p)));
-    }
-    const limit = hero ? hero.offsetHeight - header.offsetHeight : 8;
-    header.classList.toggle('is-solid', scrollY > limit);
-  }
+  // Como no protótipo: ao sair do topo o logótipo recolhe para "Og" (arrasto);
+  // com o rato ou o foco em cima, volta a abrir-se em "O GENÉRICO".
+  const go = logoTween(logo, (p) => header.style.setProperty('--e', String(ease(p))));
+  let compact = scrollY > 40;
+  let open = false;
+  const sync = (duration = 700) => go(compact && !open ? 1 : 0, reduce.matches ? 0 : duration);
+  header.classList.toggle('is-compact', compact);
+  sync(0);
+
   addEventListener(
     'scroll',
     () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
+      header.classList.toggle('is-solid', scrollY > 8);
+      if (compact !== scrollY > 40) {
+        compact = !compact;
+        header.classList.toggle('is-compact', compact);
+        sync();
       }
     },
     { passive: true },
   );
-  addEventListener('resize', update);
-  update();
+  header.classList.toggle('is-solid', scrollY > 8);
+
+  for (const [on, off] of [
+    ['pointerenter', 'pointerleave'],
+    ['focusin', 'focusout'],
+  ]) {
+    brand.addEventListener(on, () => {
+      open = true;
+      sync(450);
+    });
+    brand.addEventListener(off, () => {
+      open = false;
+      sync(450);
+    });
+  }
 
   const menu = header.querySelector<HTMLDialogElement>('#menu')!;
   const toggle = header.querySelector<HTMLButtonElement>('.menu-toggle')!;
@@ -114,19 +117,7 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
       box-shadow 300ms ease;
   }
 
-  /* Sobre a capa: fundo escuro translúcido que aparece com o scroll, para o texto da capa
-     não se misturar com o menu; o anel de foco fica da cor do texto (o acento não contrasta com a foto). */
-  .site-header[data-tone='dark']:not(.is-solid) {
-    color: var(--color-night-text);
-    background: rgba(11, 11, 11, calc(var(--e, 0) * 0.6));
-    backdrop-filter: blur(calc(var(--e, 0) * 14px));
-  }
-
-  .site-header[data-tone='dark']:not(.is-solid) :focus-visible {
-    outline-color: currentColor;
-  }
-
-  /* Sem JavaScript: o cabeçalho sai com a capa e o menu fica no rodapé */
+  /* Sem JavaScript: o cabeçalho fica no topo da página e o menu fica no rodapé */
   :global(html:not(.js)) .site-header {
     position: absolute;
   }
@@ -145,7 +136,12 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding-block: calc(1.75rem - 0.9rem * var(--e, 0));
+    padding-block: 1.75rem;
+    transition: padding-block 600ms var(--ease-out);
+  }
+
+  .is-compact .bar {
+    padding-block: 0.85rem;
   }
 
   .group {
@@ -231,8 +227,12 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
     margin: 0;
     padding: var(--space-4) var(--gutter);
     border: 0;
-    background: var(--color-night);
-    color: var(--color-night-text);
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .menu :focus-visible {
+    outline-color: currentColor;
   }
 
   .menu[open] {
@@ -274,10 +274,6 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
 
   .menu a[aria-current='page'] {
     font-style: italic;
-  }
-
-  .menu .caption {
-    color: var(--color-night-muted);
   }
 
   :global(html:has(.menu[open])) {
