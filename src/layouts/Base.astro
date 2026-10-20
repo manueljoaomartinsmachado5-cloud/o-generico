@@ -5,7 +5,6 @@ import Footer from '../components/Footer.astro';
 import Parceiros from '../components/Parceiros.astro';
 import { url } from '../lib/url';
 import displayFont from '../assets/fonts/behind-the-nineties-400.woff2?url';
-import displayFontMedium from '../assets/fonts/behind-the-nineties-500.woff2?url';
 import textFont from '../assets/fonts/just-sans-400.woff2?url';
 
 interface Props {
@@ -32,7 +31,7 @@ const pageTitle = title ? `${title} · ${siteName}` : siteName;
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
     {
-      [displayFont, displayFontMedium, textFont].map((href) => (
+      [displayFont, textFont].map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
       ))
     }
@@ -49,52 +48,51 @@ const pageTitle = title ? `${title} · ${siteName}` : siteName;
     </main>
     <Parceiros />
     <Footer />
+    <script>
+      // Revelação ao entrar no ecrã ([data-reveal]); com movimento reduzido o CSS mostra tudo logo.
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add('is-in');
+            io.unobserve(entry.target);
+          }
+        },
+        { rootMargin: '0px 0px -10% 0px' },
+      );
+      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+
+      // Ligado ao scroll: texto que se acende palavra a palavra ([data-words]) e parallax ([data-parallax]).
+      const words = [...document.querySelectorAll<HTMLElement>('[data-words]')];
+      const parallax = document.querySelector<HTMLElement>('[data-parallax]');
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && (words.length || parallax)) {
+        let ticking = false;
+        const update = () => {
+          ticking = false;
+          for (const el of words) {
+            const r = el.getBoundingClientRect();
+            const p = (innerHeight * 0.9 - r.top) / (innerHeight * 0.35 + r.height);
+            el.style.setProperty('--p', String(Math.min(Math.max(p, 0), 1)));
+          }
+          if (parallax && scrollY < innerHeight * 1.5) {
+            parallax.style.setProperty('--py', `${scrollY * 0.3}px`);
+          }
+        };
+        addEventListener(
+          'scroll',
+          () => {
+            if (!ticking) {
+              ticking = true;
+              requestAnimationFrame(update);
+            }
+          },
+          { passive: true },
+        );
+        update();
+      }
+    </script>
   </body>
 </html>
-
-<script>
-  // Revelação ao entrar no ecrã ([data-reveal]); com movimento reduzido o CSS mostra tudo logo.
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('is-in');
-        io.unobserve(entry.target);
-      }
-    },
-    { rootMargin: '0px 0px -10% 0px' },
-  );
-  document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
-
-  // Ligado ao scroll: texto que se acende palavra a palavra ([data-words]) e parallax ([data-parallax]).
-  const words = [...document.querySelectorAll<HTMLElement>('[data-words]')];
-  const parallax = document.querySelector<HTMLElement>('[data-parallax]');
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && (words.length || parallax)) {
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      for (const el of words) {
-        const r = el.getBoundingClientRect();
-        const p = (innerHeight * 0.9 - r.top) / (innerHeight * 0.35 + r.height);
-        el.style.setProperty('--p', String(Math.min(Math.max(p, 0), 1)));
-      }
-      if (parallax && scrollY < innerHeight * 1.5) {
-        parallax.style.setProperty('--py', `${scrollY * 0.3}px`);
-      }
-    };
-    addEventListener(
-      'scroll',
-      () => {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(update);
-        }
-      },
-      { passive: true },
-    );
-    update();
-  }
-</script>
 
 <style>
   .skip-link {

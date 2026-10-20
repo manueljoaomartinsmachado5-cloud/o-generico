@@ -57,7 +57,7 @@ const entradas = [
       src={capa}
       alt=""
       widths={[720, 1280, 1920, 2800]}
-      sizes="100vw"
+      sizes="(max-aspect-ratio: 2/1) 200vh, 100vw"
       loading="eager"
       fetchpriority="high"
       data-parallax
@@ -213,57 +213,71 @@ const entradas = [
       </dl>
     </div>
   </section>
-</Base>
+  <script>
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-<script>
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Código de tempo a 24 imagens por segundo, como numa mesa de montagem.
-  const tc = document.querySelector('[data-timecode]');
-  if (tc && !reduce) {
-    const t0 = performance.now();
+    // Ligados ao scroll, para nada se mexer sozinho (WCAG 2.2.2):
+    // o código de tempo avança uma imagem (1/24 s) por píxel e a faixa desliza.
+    const tc = document.querySelector('[data-timecode]');
+    const marquee = document.querySelector<HTMLElement>('.marquee-track');
     const pad = (n: number) => String(n).padStart(2, '0');
-    let last = -1;
-    const tick = (t: number) => {
-      const f = Math.floor(((t - t0) * 24) / 1000);
-      if (f !== last) {
-        last = f;
+    let half = 0;
+    const measure = () => (half = (marquee?.scrollWidth ?? 0) / 2);
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      if (tc && scrollY < innerHeight) {
+        const f = Math.round(scrollY);
         const s = Math.floor(f / 24);
         tc.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f % 24)}`;
       }
-      requestAnimationFrame(tick);
+      if (marquee && half && !reduce) marquee.style.transform = `translateX(${-((scrollY * 0.4) % half)}px)`;
     };
-    requestAnimationFrame(tick);
-  }
-
-  // Carrossel: scroll nativo (toque, trackpad, teclado) + botões e barra de progresso.
-  for (const root of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
-    const track = root.querySelector<HTMLElement>('.track')!;
-    const thumb = root.querySelector<HTMLElement>('.progress span')!;
-    const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
-    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
-    const step = (dir: number) =>
-      track.scrollBy({
-        left: dir * (track.querySelector('li')?.offsetWidth ?? 0),
-        behavior: reduce ? 'auto' : 'smooth',
-      });
-    prev.addEventListener('click', () => step(-1));
-    next.addEventListener('click', () => step(1));
-
-    const update = () => {
-      const max = track.scrollWidth - track.clientWidth;
-      const frac = track.clientWidth / track.scrollWidth;
-      const p = max > 0 ? track.scrollLeft / max : 0;
-      thumb.style.width = `${frac * 100}%`;
-      thumb.style.transform = `translateX(${p * (1 / frac - 1) * 100}%)`;
-      prev.disabled = track.scrollLeft <= 1;
-      next.disabled = track.scrollLeft >= max - 1;
-    };
-    track.addEventListener('scroll', update, { passive: true });
-    addEventListener('resize', update);
+    addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    addEventListener('resize', measure);
+    document.fonts.ready.then(measure);
+    measure();
     update();
-  }
-</script>
+
+    // Carrossel: scroll nativo (toque, trackpad, teclado) + botões e barra de progresso.
+    for (const root of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+      const track = root.querySelector<HTMLElement>('.track')!;
+      const thumb = root.querySelector<HTMLElement>('.progress span')!;
+      const prev = root.querySelector<HTMLButtonElement>('[data-prev]')!;
+      const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+      const step = (dir: number) =>
+        track.scrollBy({
+          left: dir * (track.querySelector('li')?.offsetWidth ?? 0),
+          behavior: reduce ? 'auto' : 'smooth',
+        });
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+
+      const update = () => {
+        const max = track.scrollWidth - track.clientWidth;
+        const frac = track.clientWidth / track.scrollWidth;
+        const p = max > 0 ? track.scrollLeft / max : 0;
+        thumb.style.width = `${frac * 100}%`;
+        thumb.style.transform = `translateX(${p * (1 / frac - 1) * 100}%)`;
+        // aria-disabled em vez de disabled, para o botão não perder o foco do teclado
+        prev.setAttribute('aria-disabled', String(track.scrollLeft <= 1));
+        next.setAttribute('aria-disabled', String(track.scrollLeft >= max - 1));
+      };
+      track.addEventListener('scroll', update, { passive: true });
+      addEventListener('resize', update);
+      update();
+    }
+  </script>
+</Base>
 
 <style>
   /* Capa */
@@ -274,6 +288,7 @@ const entradas = [
     flex-direction: column;
     justify-content: flex-end;
     min-height: 100svh;
+    padding-top: var(--header-h);
     overflow: hidden;
     background: var(--color-night);
     color: var(--color-night-text);
@@ -315,7 +330,7 @@ const entradas = [
     inset: -50%;
     opacity: 0.14;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grain 0.9s steps(6) infinite;
+    animation: grain 0.9s steps(6) 5;
   }
 
   @keyframes grain {
@@ -393,14 +408,13 @@ const entradas = [
     height: 2.5rem;
     background: currentColor;
     transform-origin: top;
-    animation: cue 2.2s var(--ease-out) infinite;
+    animation: cue 2.2s var(--ease-out) 2 forwards;
   }
 
   @keyframes cue {
-    0% { transform: scaleY(0); }
-    50% { transform: scaleY(1); transform-origin: top; }
-    51% { transform-origin: bottom; }
-    100% { transform: scaleY(0); transform-origin: bottom; }
+    0% { transform: translateY(0) scaleY(0); }
+    50% { transform: translateY(0) scaleY(1); }
+    100% { transform: translateY(100%) scaleY(0); }
   }
 
   /* Manifesto */
@@ -434,6 +448,11 @@ const entradas = [
     gap: var(--space-4);
     justify-items: start;
     color: var(--color-graphite);
+  }
+
+  /* Sem JavaScript os botões não fazem nada; o carrossel continua a deslizar */
+  :global(html:not(.js)) .controls {
+    display: none;
   }
 
   /* Destaques */
@@ -479,12 +498,12 @@ const entradas = [
       opacity 240ms ease;
   }
 
-  .round:hover:not(:disabled) {
+  .round:hover:not([aria-disabled='true']) {
     background: var(--color-ink);
     color: var(--color-paper);
   }
 
-  .round:disabled {
+  .round[aria-disabled='true'] {
     opacity: 0.3;
     cursor: default;
   }
@@ -575,23 +594,9 @@ const entradas = [
     text-transform: uppercase;
   }
 
-  .js .frame-title[data-reveal] {
-    transform: none;
-    letter-spacing: 0.3em;
-    transition-property: opacity, letter-spacing;
-    transition-duration: 1.6s;
-  }
-
-  .js .frame-title[data-reveal].is-in {
-    letter-spacing: -0.02em;
-  }
-
-  .js .frame--2 .frame-title[data-reveal].is-in {
-    letter-spacing: 0.12em;
-  }
-
   .slide-meta {
     display: flex;
+    align-items: baseline;
     justify-content: space-between;
     gap: var(--space-3);
     margin-top: var(--space-3);
@@ -634,7 +639,6 @@ const entradas = [
   .marquee-track {
     display: flex;
     width: max-content;
-    animation: marquee 45s linear infinite;
   }
 
   .marquee-group {
@@ -661,12 +665,6 @@ const entradas = [
     border-radius: 50%;
     background: currentColor;
     font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
-  }
-
-  @keyframes marquee {
-    to {
-      transform: translateX(-50%);
-    }
   }
 
   /* Entradas */
@@ -712,6 +710,7 @@ const entradas = [
   }
 
   .card-text {
+    min-height: 3lh; /* títulos alinhados mesmo com descrições de alturas diferentes */
     color: var(--color-graphite);
     font-size: var(--text-sm);
   }
@@ -847,6 +846,10 @@ const entradas = [
     .frame-credit,
     .frame-year {
       display: none;
+    }
+
+    .frame-title {
+      font-size: 1.25rem;
     }
 
     .cards {

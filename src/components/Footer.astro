@@ -41,13 +41,19 @@ import { url } from '../lib/url';
   const svg = document.querySelector<SVGSVGElement>('.site-footer [data-logo]');
   if (svg && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     let ticking = false;
+    let last = -1;
     const update = () => {
       ticking = false;
-      const top = svg.getBoundingClientRect().top;
+      // Mede-se o contentor (altura fixa), não o SVG, que muda de altura com a animação.
+      const top = svg.parentElement!.getBoundingClientRect().top;
       const maxScroll = document.documentElement.scrollHeight - innerHeight;
       const topAtEnd = top + scrollY - maxScroll;
       const q = (innerHeight - top) / Math.max(1, Math.min(innerHeight * 0.5, innerHeight - topAtEnd));
-      morphLogo(svg, 1 - Math.min(Math.max(q, 0), 1));
+      const p = 1 - Math.min(Math.max(q, 0), 1);
+      if (p !== last) {
+        last = p;
+        morphLogo(svg, p);
+      }
     };
     addEventListener(
       'scroll',

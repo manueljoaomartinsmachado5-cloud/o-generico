@@ -244,7 +244,7 @@ svg {
 
 /* Texto que se acende palavra a palavra com o scroll (--p de 0 a 1, ver Base.astro) */
 .js [data-words] .w {
-  opacity: clamp(0.16, calc(var(--p, 0) * var(--n) - var(--i)), 1);
+  opacity: clamp(0.45, calc(var(--p, 0) * var(--n) - var(--i)), 1); /* 0,45: ≥ 3:1 (texto grande) */
   transition: opacity 120ms linear;
 }
 

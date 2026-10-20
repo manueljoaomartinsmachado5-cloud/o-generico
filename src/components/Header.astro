@@ -63,12 +63,16 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
 
   // O logótipo recolhe nos primeiros ~40% do ecrã de scroll; o fundo fica sólido depois da capa.
   let ticking = false;
+  let last = -1;
   function update() {
     ticking = false;
     const range = Math.min(innerHeight * 0.4, 360);
     const p = reduce.matches ? Number(scrollY > range / 2) : Math.min(scrollY / range, 1);
-    morphLogo(logo, p);
-    header.style.setProperty('--e', String(ease(p)));
+    if (p !== last) {
+      last = p;
+      morphLogo(logo, p);
+      header.style.setProperty('--e', String(ease(p)));
+    }
     const limit = hero ? hero.offsetHeight - header.offsetHeight : 8;
     header.classList.toggle('is-solid', scrollY > limit);
   }
@@ -110,8 +114,25 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
       box-shadow 300ms ease;
   }
 
+  /* Sobre a capa: fundo escuro translúcido que aparece com o scroll, para o texto da capa
+     não se misturar com o menu; o anel de foco fica da cor do texto (o acento não contrasta com a foto). */
   .site-header[data-tone='dark']:not(.is-solid) {
     color: var(--color-night-text);
+    background: rgba(11, 11, 11, calc(var(--e, 0) * 0.6));
+    backdrop-filter: blur(calc(var(--e, 0) * 14px));
+  }
+
+  .site-header[data-tone='dark']:not(.is-solid) :focus-visible {
+    outline-color: currentColor;
+  }
+
+  /* Sem JavaScript: o cabeçalho sai com a capa e o menu fica no rodapé */
+  :global(html:not(.js)) .site-header {
+    position: absolute;
+  }
+
+  :global(html:not(.js)) .menu-toggle {
+    display: none;
   }
 
   .site-header.is-solid {

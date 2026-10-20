@@ -18,7 +18,8 @@ export function morphLogo(svg: SVGSVGElement, p: number) {
 
   // A caixa acompanha a tinta: esquerda = O, direita = fim das letras, topo = acento do É.
   const x = cx - 350 * s;
-  const top = lerp(-1011, -710, rest);
+  // O topo só desce depois de o acento do É passar para trás do G (rest ≈ 0,39).
+  const top = lerp(-1011, -710, clamp((rest - 0.42) / 0.58));
   const w = 6694 - SHIFT * rest - x;
   const h = 10 - top;
   svg.setAttribute('viewBox', `${x} ${top} ${w} ${h}`);
