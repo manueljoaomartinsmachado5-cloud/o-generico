@@ -7,7 +7,7 @@ import { url } from '../lib/url';
 <footer class="site-footer">
   <div class="container">
     <div class="top">
-      <p class="lead">
+      <p>
         Arquivo e análise de genéricos do cinema português. Um projeto de dissertação do Mestrado
         em Design e Multimédia da Universidade de Coimbra, com o apoio da Cinemateca Portuguesa –
         Museu do Cinema.
@@ -42,12 +42,14 @@ import { url } from '../lib/url';
   if (svg && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const go = logoTween(svg);
     go(1, 0);
+    // Só volta a "Og" quando o rodapé sai de vista, para não saltar à frente de quem lê.
     new IntersectionObserver(
-      ([entry]) => {
-        const shown = entry.intersectionRatio >= 0.6;
-        go(shown ? 0 : 1, shown ? 1100 : 0);
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (entry.intersectionRatio >= 0.6) go(0, 1100);
+        else if (!entry.isIntersecting) go(1, 0);
       },
-      { threshold: 0.6 },
+      { threshold: [0, 0.6] },
     ).observe(svg.parentElement!);
   }
 </script>

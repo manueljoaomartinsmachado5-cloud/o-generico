@@ -20,12 +20,37 @@ const genericos = await Promise.all(
     })),
 );
 
-// As quatro formas do "Og" (O, meio disco, ponto e triângulo do G), em unidades da fonte.
+// As quatro formas do "Og" (O, meio disco, ponto e quarto de disco do g), em unidades da fonte:
+// cor, caixa (para a faixa), profundidade no rato e de onde entram na abertura.
 const formas = [
-  { d: 'M237 -350a360 360 0 1 0 720 0a360 360 0 1 0 -720 0Z', cor: 'coral' },
-  { d: 'M1369 10A360 360 0 0 1 1369 -710Z', cor: 'lime' },
-  { d: 'M1419 -542.5a167.5 167.5 0 1 0 335 0a167.5 167.5 0 1 0 -335 0Z', cor: 'pink' },
-  { d: 'M1419 -325H1744V0Z', cor: 'sun' },
+  {
+    d: 'M237 -350a360 360 0 1 0 720 0a360 360 0 1 0 -720 0Z',
+    cor: 'coral',
+    caixa: '237 -710 720 720',
+    fundo: 60,
+    de: 'translate(-900px, 300px) scale(0.2)',
+  },
+  {
+    d: 'M1369 10A360 360 0 0 1 1369 -710Z',
+    cor: 'lime',
+    caixa: '1009 -710 360 720',
+    fundo: 90,
+    de: 'translate(700px, -600px) rotate(180deg)',
+  },
+  {
+    d: 'M1419 -542.5a167.5 167.5 0 1 0 335 0a167.5 167.5 0 1 0 -335 0Z',
+    cor: 'pink',
+    caixa: '1419 -710 335 335',
+    fundo: 130,
+    de: 'translate(500px, -900px) scale(0.2)',
+  },
+  {
+    d: 'M1744 0A325 325 0 0 1 1419 -325H1744Z',
+    cor: 'sun',
+    caixa: '1419 -325 325 325',
+    fundo: 110,
+    de: 'translate(900px, 500px) rotate(-90deg)',
+  },
 ];
 
 const elementos = [
@@ -103,24 +128,24 @@ const entradas = [
           <svg viewBox="-304.5 -1065 2600 1625">
             {
               formas.map((f, i) => (
-                <g class="par" style={`--depth: ${[60, 90, 130, 110][i]}`}>
-                  <path class="shape" d={f.d} style={`--i: ${i}; fill: var(--color-${f.cor})`} />
+                <g class="par" style={`--depth: ${f.fundo}`}>
+                  <path class="shape" d={f.d} style={`--i: ${i}; --from: ${f.de}; fill: var(--color-${f.cor})`} />
                 </g>
               ))
             }
           </svg>
-          <p class="credits">Tipografia · Composição · Animação · Ritmo · Som</p>
+          <p class="credits">Tipografia&nbsp;· Composição&nbsp;· Animação&nbsp;· Ritmo&nbsp;· Som</p>
         </div>
         <div class="cursors" aria-hidden="true">
           <span class="cursor" style="--x: 4%; --y: 26%; --c: var(--color-coral); --depth: 18; --i: 0">
             <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
             <span>Tipografia</span>
           </span>
-          <span class="cursor" style="--x: 86%; --y: 46%; --c: var(--color-lime); --depth: -14; --i: 1">
+          <span class="cursor" style="--x: auto; right: 3%; --y: 46%; --c: var(--color-lime); --depth: -14; --i: 1">
             <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
             <span>Ritmo</span>
           </span>
-          <span class="cursor cursor--som" style="--x: 64%; --y: 74%; --c: var(--color-pink); --depth: 24; --i: 2">
+          <span class="cursor cursor--som" style="--x: 64%; --y: 72%; --c: var(--color-pink); --depth: 12; --i: 2">
             <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
             <span>Som</span>
           </span>
@@ -137,7 +162,7 @@ const entradas = [
             {elementos.map((e, i) => (
               <>
                 <span class="marquee-item">{e.nome}</span>
-                <svg class="marquee-shape" viewBox={['237 -710 720 720', '1009 -710 360 720', '1419 -710 335 335', '1419 -325 325 325'][i % 4]}>
+                <svg class="marquee-shape" viewBox={formas[i % 4].caixa}>
                   <path d={formas[i % 4].d} />
                 </svg>
               </>
@@ -148,7 +173,7 @@ const entradas = [
     </div>
   </div>
 
-  <section class="manifesto" id="o-que-e" aria-labelledby="manifesto-titulo">
+  <section class="manifesto" aria-labelledby="manifesto-titulo">
     <div class="container manifesto-grid">
       <h2 id="manifesto-titulo" class="caption label">O que é um genérico</h2>
       <p class="manifesto-text" data-words style={`--n: ${words.length}`}>
@@ -213,7 +238,7 @@ const entradas = [
   <section class="featured" aria-labelledby="destaques-titulo" data-carousel>
     <div class="container featured-head">
       <h2 id="destaques-titulo" class="section-title">Genéricos em destaque</h2>
-      <p class="caption note">Exemplos provisórios, até entrarem os primeiros genéricos do arquivo</p>
+      <p class="caption note">Exemplos fictícios, até entrarem os primeiros genéricos do arquivo</p>
       <div class="controls">
         <button type="button" class="round" data-prev aria-controls="destaques" aria-label="Anterior">←</button>
         <button type="button" class="round" data-next aria-controls="destaques" aria-label="Seguinte">→</button>
@@ -240,6 +265,7 @@ const entradas = [
                 <span>{g.ano}</span>
               </div>
               <p class="caption slide-info">
+                <span class="visually-hidden">Exemplo fictício · </span>
                 {g.realizacao} · {g.tecnicas.join(', ')}
               </p>
             </article>
@@ -336,7 +362,22 @@ const entradas = [
       raf = requestAnimationFrame(tick);
     };
     stage.querySelector('[data-replay]')!.addEventListener('click', play);
-    play();
+
+    // Se a abertura começa abaixo da dobra (telemóveis pequenos ou deitados), só toca quando aparece.
+    const r = screen.getBoundingClientRect();
+    if (r.top + r.height / 2 <= innerHeight) play();
+    else {
+      screen.classList.remove('is-playing');
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          io.disconnect();
+          play();
+        },
+        { threshold: 0.5 },
+      );
+      io.observe(screen);
+    }
 
     // As formas e os cursores seguem o rato com profundidades diferentes (só quando o rato se mexe).
     if (!reduce) {
@@ -423,7 +464,8 @@ const entradas = [
   .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    align-items: center;
+    align-items: baseline;
+    align-content: center;
     gap: clamp(2rem, 5vw, 5rem);
     min-height: calc(100svh - var(--header-h) - var(--space-5) - var(--space-6));
   }
@@ -544,22 +586,6 @@ const entradas = [
     animation-delay: calc(var(--i) * 220ms + 250ms);
   }
 
-  .is-playing .shape[style*='--i: 0'] {
-    --from: translate(-900px, 300px) scale(0.2);
-  }
-
-  .is-playing .shape[style*='--i: 1'] {
-    --from: translate(700px, -600px) rotate(180deg);
-  }
-
-  .is-playing .shape[style*='--i: 2'] {
-    --from: translate(500px, -900px) scale(0.2);
-  }
-
-  .is-playing .shape[style*='--i: 3'] {
-    --from: translate(900px, 500px) rotate(-90deg);
-  }
-
   @keyframes assemble {
     from {
       opacity: 0;
@@ -570,6 +596,7 @@ const entradas = [
   .credits {
     position: absolute;
     inset: auto 0 7%;
+    padding-inline: var(--space-3);
     color: #fff;
     font-size: var(--text-caption);
     letter-spacing: 0.3em;
@@ -593,6 +620,7 @@ const entradas = [
     left: var(--x);
     top: var(--y);
     display: flex;
+    width: max-content;
     align-items: flex-start;
     gap: 2px;
     translate: calc(var(--mx, 0) * var(--depth) * 1px) calc(var(--my, 0) * var(--depth) * 1px);
@@ -842,7 +870,7 @@ const entradas = [
     left: 68%;
     top: 30%;
     width: 18%;
-    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    border-radius: 0 0 0 100%;
   }
 
   .el--comp:hover .blk:nth-child(1) {
@@ -880,21 +908,26 @@ const entradas = [
     background: var(--color-ink);
   }
 
+  .el--anim .el-visual {
+    container-type: inline-size;
+  }
+
   :global(.js) .el--anim.is-in .ball {
     animation: bounce 1.6s cubic-bezier(0.3, 0, 0.5, 1) 400ms both;
   }
 
+  /* O percurso é a largura do cartão (cqi) menos a da bola, para acabar sempre no fim da linha */
   @keyframes bounce {
     0% { transform: translate(0, 0); }
-    20% { transform: translate(15%, -300%); }
-    40% { transform: translate(300%, 0) scale(1.25, 0.8); }
-    60% { transform: translate(450%, -150%); }
-    80% { transform: translate(600%, 0) scale(1.15, 0.85); }
-    100% { transform: translate(650%, 0); }
+    20% { transform: translate(calc((100cqi - 2.5rem) * 0.02), -300%); }
+    40% { transform: translate(calc((100cqi - 2.5rem) * 0.46), 0) scale(1.25, 0.8); }
+    60% { transform: translate(calc((100cqi - 2.5rem) * 0.7), -150%); }
+    80% { transform: translate(calc((100cqi - 2.5rem) * 0.92), 0) scale(1.15, 0.85); }
+    100% { transform: translate(calc(100cqi - 2.5rem), 0); }
   }
 
   .el--anim:hover .ball {
-    translate: -600% 0;
+    translate: calc((100cqi - 2.5rem) * -0.92) 0;
   }
 
   /* Ritmo: uma linha de montagem com a cabeça de leitura a passar */
@@ -998,7 +1031,9 @@ const entradas = [
     gap: var(--space-2);
   }
 
-  :global(html:not(.js)) .controls {
+  :global(html:not(.js)) .controls,
+  :global(html:not(.js)) .replay,
+  :global(html:not(.js)) .tc {
     display: none;
   }
 
@@ -1015,8 +1050,7 @@ const entradas = [
     cursor: pointer;
     transition:
       background-color 240ms ease,
-      color 240ms ease,
-      opacity 240ms ease;
+      color 240ms ease;
   }
 
   .round:hover:not([aria-disabled='true']) {
@@ -1024,13 +1058,16 @@ const entradas = [
     color: var(--color-paper);
   }
 
+  /* Esbate só o botão; o anel de foco continua bem visível */
   .round[aria-disabled='true'] {
-    opacity: 0.3;
+    color: rgb(10 10 10 / 0.3);
     cursor: default;
   }
 
+  /* relative: o texto só para leitores de ecrã fica dentro da faixa e não alarga a página */
   .track {
     --edge: max(var(--gutter), (100% - var(--width-content)) / 2 + var(--gutter));
+    position: relative;
     display: flex;
     gap: var(--space-4);
     margin: 0;
@@ -1067,7 +1104,7 @@ const entradas = [
     background: var(--color-accent);
     color: #fff;
     text-align: center;
-    overflow: hidden;
+    overflow: clip;
   }
 
   .frame--1 {
@@ -1235,7 +1272,7 @@ const entradas = [
 
   .card:hover::before,
   .card:focus-visible::before {
-    transform: scale(9);
+    transform: scale(14);
   }
 
   .card--0:hover,
@@ -1374,6 +1411,18 @@ const entradas = [
     }
   }
 
+  /* Telemóvel deitado: a abertura cabe inteira no ecrã, por baixo do cabeçalho */
+  @media (orientation: landscape) and (max-height: 30rem) {
+    .stage {
+      width: min(100%, calc((100svh - 7rem) * 1.6));
+      margin-inline: auto;
+    }
+
+    .cursor--som {
+      display: none;
+    }
+  }
+
   @media (max-width: 35.99rem) {
     .el--tipo,
     .el--comp {
@@ -1382,6 +1431,16 @@ const entradas = [
 
     .el {
       min-height: 18rem;
+    }
+
+    /* Créditos em duas linhas no máximo, para não tocarem nas formas */
+    .credits {
+      letter-spacing: 0.12em;
+    }
+
+    /* Espaço para a etiqueta "Exemplo fictício" não tocar no título */
+    .frame {
+      padding-top: 3.5rem;
     }
 
     /* No ecrã pequeno os créditos ocupam duas linhas e o cursor "Som" taparia o texto */

@@ -59,8 +59,9 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
   // com o rato ou o foco em cima, volta a abrir-se em "O GENÉRICO".
   const go = logoTween(logo, (p) => header.style.setProperty('--e', String(ease(p))));
   let compact = scrollY > 40;
-  let open = false;
-  const sync = (duration = 700) => go(compact && !open ? 1 : 0, reduce.matches ? 0 : duration);
+  const open = { pointer: false, focus: false };
+  const sync = (duration = 700) =>
+    go(compact && !open.pointer && !open.focus ? 1 : 0, reduce.matches ? 0 : duration);
   header.classList.toggle('is-compact', compact);
   sync(0);
 
@@ -78,16 +79,16 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
   );
   header.classList.toggle('is-solid', scrollY > 8);
 
-  for (const [on, off] of [
-    ['pointerenter', 'pointerleave'],
-    ['focusin', 'focusout'],
-  ]) {
+  for (const [key, on, off] of [
+    ['pointer', 'pointerenter', 'pointerleave'],
+    ['focus', 'focusin', 'focusout'],
+  ] as const) {
     brand.addEventListener(on, () => {
-      open = true;
+      open[key] = true;
       sync(450);
     });
     brand.addEventListener(off, () => {
-      open = false;
+      open[key] = false;
       sync(450);
     });
   }
@@ -141,7 +142,7 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
   }
 
   .is-compact .bar {
-    padding-block: 0.85rem;
+    padding-block: 1.25rem 0.85rem;
   }
 
   .group {
@@ -184,10 +185,20 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
     background-size: 100% 1px;
   }
 
+  /* A caixa do logótipo segue a altura do "Og"; ao reabrir com o rato, o acento do É cresce para
+     cima em vez de alargar o cabeçalho e empurrar o menu */
   .brand {
     grid-column: 2;
     grid-row: 1;
+    display: flex;
+    align-items: flex-end;
+    height: calc(1021 * var(--logo-k));
     color: inherit;
+    transition: height 600ms var(--ease-out);
+  }
+
+  .is-compact .brand {
+    height: calc(720 * var(--logo-k-og));
   }
 
   .brand :global(.logo) {
