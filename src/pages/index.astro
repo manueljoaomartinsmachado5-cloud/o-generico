@@ -604,6 +604,13 @@ const entradas = [
     text-transform: uppercase;
   }
 
+  /* Enquanto espera para tocar (abaixo da dobra), a abertura não mostra já o fim */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .screen:not(.is-playing) :is(.shape, .credits) {
+      opacity: 0;
+    }
+  }
+
   .is-playing .credits {
     animation: rise 900ms var(--ease-out) 1.9s both;
   }
@@ -1105,6 +1112,7 @@ const entradas = [
     color: #fff;
     text-align: center;
     overflow: clip;
+    min-height: 0;
   }
 
   .frame--1 {
@@ -1414,7 +1422,7 @@ const entradas = [
   /* Telemóvel deitado: a abertura cabe inteira no ecrã, por baixo do cabeçalho */
   @media (orientation: landscape) and (max-height: 30rem) {
     .stage {
-      width: min(100%, calc((100svh - 7rem) * 1.6));
+      width: min(100%, calc((100svh - 7.5rem) * 1.6));
       margin-inline: auto;
     }
 

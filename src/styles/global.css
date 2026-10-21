@@ -270,7 +270,7 @@ svg {
 
   /* Texto e sublinhado do manifesto já acesos */
   .js [data-words] {
-    --p: 1;
+    --p: 1 !important;
   }
 }
 

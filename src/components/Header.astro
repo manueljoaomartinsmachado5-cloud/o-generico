@@ -84,7 +84,8 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
     ['focus', 'focusin', 'focusout'],
   ] as const) {
     brand.addEventListener(on, () => {
-      open[key] = true;
+      // Só o foco do teclado conta: um clique também dá foco e deixaria o logótipo aberto
+      open[key] = key === 'pointer' || brand.matches(':focus-visible');
       sync(450);
     });
     brand.addEventListener(off, () => {
@@ -194,11 +195,22 @@ const groups = [nav.slice(0, 3), nav.slice(3)];
     align-items: flex-end;
     height: calc(1021 * var(--logo-k));
     color: inherit;
-    transition: height 600ms var(--ease-out);
+    /* o mesmo ritmo do tween do logótipo (700 ms, ease-in-out cúbico) */
+    transition: height 700ms cubic-bezier(0.65, 0, 0.35, 1);
   }
 
   .is-compact .brand {
     height: calc(720 * var(--logo-k-og));
+  }
+
+  /* O anel de foco contorna o logótipo, que pode sair da caixa para cima */
+  .brand:focus-visible {
+    outline: none;
+  }
+
+  .brand:focus-visible :global(.logo) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
   }
 
   .brand :global(.logo) {
