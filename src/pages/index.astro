@@ -1,19 +1,15 @@
 ---
 import { getCollection, getEntries } from 'astro:content';
-import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { url } from '../lib/url';
-import capa from '../assets/images/capa-tabu.jpg';
 
-const heroLines = [
-  'Uma plataforma digital para explorar,',
-  'comparar e contextualizar a abertura',
-  'visual do cinema português',
-];
+const tagline =
+  'Uma plataforma digital para explorar, comparar e contextualizar a abertura visual do cinema português';
 
 const manifesto =
   'A sequência de abertura de um filme apresenta o título, o elenco e a equipa criativa. Mas também estabelece o tom e a atmosfera da obra.';
 const words = manifesto.split(' ');
+const marked = words.indexOf('tom') - 1; // "o tom e a atmosfera da obra." fica sublinhado a lima
 
 const genericos = await Promise.all(
   (await getCollection('genericos'))
@@ -24,7 +20,55 @@ const genericos = await Promise.all(
     })),
 );
 
-const elementos = ['Tipografia', 'Composição gráfica', 'Animação', 'Ritmo', 'Som', 'Motion graphics'];
+// As quatro formas do "Og" (O, meio disco, ponto e quarto de disco do g), em unidades da fonte:
+// cor, caixa (para a faixa), profundidade no rato e de onde entram na abertura.
+const formas = [
+  {
+    d: 'M237 -350a360 360 0 1 0 720 0a360 360 0 1 0 -720 0Z',
+    cor: 'coral',
+    caixa: '237 -710 720 720',
+    fundo: 60,
+    de: 'translate(-900px, 300px) scale(0.2)',
+  },
+  {
+    d: 'M1369 10A360 360 0 0 1 1369 -710Z',
+    cor: 'lime',
+    caixa: '1009 -710 360 720',
+    fundo: 90,
+    de: 'translate(700px, -600px) rotate(180deg)',
+  },
+  {
+    d: 'M1419 -542.5a167.5 167.5 0 1 0 335 0a167.5 167.5 0 1 0 -335 0Z',
+    cor: 'pink',
+    caixa: '1419 -710 335 335',
+    fundo: 130,
+    de: 'translate(500px, -900px) scale(0.2)',
+  },
+  {
+    d: 'M1744 0A325 325 0 0 1 1419 -325H1744Z',
+    cor: 'sun',
+    caixa: '1419 -325 325 325',
+    fundo: 110,
+    de: 'translate(900px, 500px) rotate(-90deg)',
+  },
+];
+
+const elementos = [
+  {
+    nome: 'Tipografia',
+    texto: 'As letras do título e dos créditos, e a forma como entram e saem.',
+  },
+  {
+    nome: 'Composição gráfica',
+    texto: 'Onde cada elemento se coloca no ecrã e como se relaciona com os outros.',
+  },
+  { nome: 'Animação', texto: 'O movimento das letras, das formas e das imagens.' },
+  { nome: 'Ritmo', texto: 'A duração de cada crédito e o compasso dos cortes.' },
+  { nome: 'Som', texto: 'A música, o silêncio e os ruídos que acompanham a abertura.' },
+];
+
+// Alturas fixas das barras de som (0–1), para o desenho ser igual em todas as compilações.
+const onda = [0.35, 0.6, 0.9, 0.5, 0.75, 1, 0.65, 0.4, 0.8, 0.55, 0.95, 0.45, 0.7, 0.3, 0.85, 0.6, 0.4, 0.75];
 
 const entradas = [
   {
@@ -50,63 +94,151 @@ const entradas = [
 ];
 ---
 
-<Base headerTone="dark">
-  <section class="hero" data-hero aria-labelledby="hero-titulo">
-    <Image
-      class="hero-img"
-      src={capa}
-      alt=""
-      widths={[720, 1280, 1920, 2800]}
-      sizes="(max-aspect-ratio: 2/1) 200vh, 100vw"
-      loading="eager"
-      fetchpriority="high"
-      data-parallax
-    />
-    <div class="hero-shade" aria-hidden="true"></div>
-    <div class="container hero-content">
-      <h1 id="hero-titulo" class="hero-title">
-        {
-          heroLines.map((line, i) => (
-            <span class="line">
-              <span style={`--i: ${i}`}>{line} </span>
-            </span>
-          ))
-        }
-      </h1>
-      <p class="caption hero-caption">
-        <span>Imagem de capa</span>
-        <span>“Tabu” (2012), Miguel Gomes</span>
-      </p>
-    </div>
-    <div class="container hero-foot caption" aria-hidden="true">
-      <span data-timecode>00:00:00:00</span>
-      <span class="cue">Deslizar</span>
+<Base>
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <p class="caption kicker">Arquivo e análise de genéricos do cinema português</p>
+        <h1 id="hero-titulo" class="hero-title">
+          {
+            tagline.split(' ').map((w, i) => (
+              <>
+                <span class="wm">
+                  <span style={`--i: ${i}`}>{w}</span>
+                </span>{' '}
+              </>
+            ))
+          }
+        </h1>
+        <div class="actions">
+          <a class="button button--accent" href={url('/arquivo/')}>
+            Explorar o arquivo <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="button button--ghost" href="#elementos">Do que é feito um genérico</a>
+        </div>
+      </div>
+
+      <div class="stage" data-stage>
+        <div class="stage-bar caption">
+          <span class="stage-name"><span class="frame-icon" aria-hidden="true">#</span> Abertura</span>
+          <span class="tc" data-tc aria-hidden="true">00:00:00:00</span>
+          <button type="button" class="replay" data-replay>Repetir</button>
+        </div>
+        <div class="screen is-playing" data-screen aria-hidden="true">
+          <svg viewBox="-304.5 -1065 2600 1625">
+            {
+              formas.map((f, i) => (
+                <g class="par" style={`--depth: ${f.fundo}`}>
+                  <path class="shape" d={f.d} style={`--i: ${i}; --from: ${f.de}; fill: var(--color-${f.cor})`} />
+                </g>
+              ))
+            }
+          </svg>
+          <p class="credits">Tipografia&nbsp;· Composição&nbsp;· Animação&nbsp;· Ritmo&nbsp;· Som</p>
+        </div>
+        <div class="cursors" aria-hidden="true">
+          <span class="cursor" style="--x: 4%; --y: 26%; --c: var(--color-coral); --depth: 18; --i: 0">
+            <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
+            <span>Tipografia</span>
+          </span>
+          <span class="cursor" style="--x: auto; right: 3%; --y: 46%; --c: var(--color-lime); --depth: -14; --i: 1">
+            <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
+            <span>Ritmo</span>
+          </span>
+          <span class="cursor cursor--som" style="--x: 64%; --y: 72%; --c: var(--color-pink); --depth: 12; --i: 2">
+            <svg viewBox="0 0 16 16"><path d="M1 1 15 7.5 8.5 9 6.5 15Z"></path></svg>
+            <span>Som</span>
+          </span>
+        </div>
+      </div>
     </div>
   </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      {
+        [0, 1].map(() => (
+          <span class="marquee-group">
+            {elementos.map((e, i) => (
+              <>
+                <span class="marquee-item">{e.nome}</span>
+                <svg class="marquee-shape" viewBox={formas[i % 4].caixa}>
+                  <path d={formas[i % 4].d} />
+                </svg>
+              </>
+            ))}
+          </span>
+        ))
+      }
+    </div>
+  </div>
 
   <section class="manifesto" aria-labelledby="manifesto-titulo">
     <div class="container manifesto-grid">
       <h2 id="manifesto-titulo" class="caption label">O que é um genérico</h2>
       <p class="manifesto-text" data-words style={`--n: ${words.length}`}>
-        {words.map((w, i) => <span class="w" style={`--i: ${i}`}>{w} </span>)}
+        {
+          words.map((w, i) => (
+            <span class:list={['w', i >= marked && 'mark']} style={`--i: ${i}`}>
+              {w}{' '}
+            </span>
+          ))
+        }
       </p>
-      <div class="manifesto-aside" data-reveal>
-        <p>
-          O tom constrói-se com a tipografia, a composição gráfica, a animação, o ritmo e o som. O
-          Genérico reúne, estuda e relaciona os genéricos do cinema português enquanto objetos de
-          design.
-        </p>
-        <a class="button button--accent" href={url('/arquivo/')}>
-          Explorar o arquivo <span class="arrow" aria-hidden="true">→</span>
-        </a>
-      </div>
+      <p class="manifesto-aside" data-reveal>
+        O tom constrói-se com a tipografia, a composição gráfica, a animação, o ritmo e o som. O
+        Genérico reúne, estuda e relaciona os genéricos do cinema português enquanto objetos de
+        design.
+      </p>
+    </div>
+  </section>
+
+  <section class="elements" id="elementos" aria-labelledby="elementos-titulo">
+    <div class="container">
+      <h2 id="elementos-titulo" class="section-title" data-reveal>Do que é feito um genérico</h2>
+      <ul class="bento">
+        <li class="el el--tipo" data-reveal>
+          <div class="el-visual" aria-hidden="true">
+            <span class="spec"><span>Aa</span><span>Aa</span></span>
+          </div>
+          <h3>{elementos[0].nome}</h3>
+          <p>{elementos[0].texto}</p>
+        </li>
+        <li class="el el--comp" data-reveal style="--delay: 1">
+          <div class="el-visual" aria-hidden="true">
+            <span class="blk"></span><span class="blk"></span><span class="blk"></span><span class="blk"></span>
+          </div>
+          <h3>{elementos[1].nome}</h3>
+          <p>{elementos[1].texto}</p>
+        </li>
+        <li class="el el--anim" data-reveal>
+          <div class="el-visual" aria-hidden="true"><span class="ball"></span><span class="floor"></span></div>
+          <h3>{elementos[2].nome}</h3>
+          <p>{elementos[2].texto}</p>
+        </li>
+        <li class="el el--ritmo" data-reveal style="--delay: 1">
+          <div class="el-visual" aria-hidden="true">
+            {[3, 1.5, 2, 1, 2.5, 1.2].map((w) => <span class="clip" style={`flex-grow: ${w}`} />)}
+            <span class="head"></span>
+          </div>
+          <h3>{elementos[3].nome}</h3>
+          <p>{elementos[3].texto}</p>
+        </li>
+        <li class="el el--som" data-reveal style="--delay: 2">
+          <div class="el-visual" aria-hidden="true">
+            {onda.map((h, i) => <span class="bar" style={`--h: ${h}; --i: ${i}`} />)}
+          </div>
+          <h3>{elementos[4].nome}</h3>
+          <p>{elementos[4].texto}</p>
+        </li>
+      </ul>
     </div>
   </section>
 
   <section class="featured" aria-labelledby="destaques-titulo" data-carousel>
     <div class="container featured-head">
       <h2 id="destaques-titulo" class="section-title">Genéricos em destaque</h2>
-      <p class="caption note">Exemplos provisórios, até entrarem os primeiros genéricos do arquivo</p>
+      <p class="caption note">Exemplos fictícios, até entrarem os primeiros genéricos do arquivo</p>
       <div class="controls">
         <button type="button" class="round" data-prev aria-controls="destaques" aria-label="Anterior">←</button>
         <button type="button" class="round" data-next aria-controls="destaques" aria-label="Seguinte">→</button>
@@ -120,16 +252,20 @@ const entradas = [
               <div class:list={['frame', `frame--${i % 3}`]} aria-hidden="true">
                 <span class="tag">Exemplo fictício</span>
                 <span class="frame-credit">Um filme de {g.realizacao}</span>
-                <span class="frame-title" data-reveal>
-                  {g.titulo}
-                </span>
+                <span class="frame-title">{g.titulo}</span>
                 <span class="frame-year">{g.ano}</span>
+                <svg class="frame-shapes" viewBox="237 -710 1517 720">
+                  {formas.map((f) => (
+                    <path d={f.d} />
+                  ))}
+                </svg>
               </div>
               <div class="slide-meta">
                 <h3 id={`destaque-${i}`}>{g.titulo}</h3>
                 <span>{g.ano}</span>
               </div>
               <p class="caption slide-info">
+                <span class="visually-hidden">Exemplo fictício · </span>
                 {g.realizacao} · {g.tecnicas.join(', ')}
               </p>
             </article>
@@ -142,23 +278,6 @@ const entradas = [
     </div>
   </section>
 
-  <div class="marquee" aria-hidden="true">
-    <div class="marquee-track">
-      {
-        [0, 1].map(() => (
-          <span class="marquee-group">
-            {elementos.map((e) => (
-              <>
-                <span class="marquee-item">{e}</span>
-                <span class="dot" />
-              </>
-            ))}
-          </span>
-        ))
-      }
-    </div>
-  </div>
-
   <section class="entries" aria-labelledby="entradas-titulo">
     <div class="container">
       <h2 id="entradas-titulo" class="section-title" data-reveal>Por onde começar</h2>
@@ -166,9 +285,9 @@ const entradas = [
         {
           entradas.map((e, i) => (
             <li data-reveal style={`--delay: ${i}`}>
-              <a class="card" href={url(e.path)}>
+              <a class:list={['card', `card--${i}`]} href={url(e.path)}>
                 <span class="caption">0{i + 1}</span>
-                <span class:list={['shape', `shape--${i}`]} aria-hidden="true" />
+                <span class:list={['shape-mini', `shape-mini--${i}`]} aria-hidden="true" />
                 <span class="card-title">{e.label}</span>
                 <span class="card-text">{e.text}</span>
                 <span class="arrow" aria-hidden="true">→</span>
@@ -181,56 +300,111 @@ const entradas = [
   </section>
 
   <section class="project" aria-labelledby="projeto-titulo">
-    <div class="container project-grid">
-      <div data-reveal>
-        <h2 id="projeto-titulo" class="section-title">O projeto</h2>
-        <p class="project-text">
-          O Genérico é um projeto de dissertação do Mestrado em Design e Multimédia da Faculdade de
-          Ciências e Tecnologia da Universidade de Coimbra, com o apoio da Cinemateca Portuguesa –
-          Museu do Cinema.
-        </p>
-        <a class="button button--ghost" href={url('/sobre/')}>
-          Sobre o projeto <span class="arrow" aria-hidden="true">→</span>
-        </a>
+    <div class="container">
+      <div class="project-panel">
+        <div data-reveal>
+          <h2 id="projeto-titulo" class="section-title">O projeto</h2>
+          <p class="project-text">
+            O Genérico é um projeto de dissertação do Mestrado em Design e Multimédia da Faculdade
+            de Ciências e Tecnologia da Universidade de Coimbra, com o apoio da Cinemateca
+            Portuguesa – Museu do Cinema.
+          </p>
+          <a class="button button--ghost" href={url('/sobre/')}>
+            Sobre o projeto <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+        <dl class="facts">
+          <div data-reveal style="--delay: 1">
+            <dt class="caption">Mestrado</dt>
+            <dd>Design e Multimédia</dd>
+          </div>
+          <div data-reveal style="--delay: 2">
+            <dt class="caption">Instituição</dt>
+            <dd>FCTUC, Universidade de Coimbra</dd>
+          </div>
+          <div data-reveal style="--delay: 3">
+            <dt class="caption">Apoio</dt>
+            <dd>Cinemateca Portuguesa – Museu do Cinema</dd>
+          </div>
+          <div data-reveal style="--delay: 4">
+            <dt class="caption">Ano letivo</dt>
+            <dd>2026/2027</dd>
+          </div>
+        </dl>
       </div>
-      <dl class="facts">
-        <div data-reveal style="--delay: 1">
-          <dt class="caption">Mestrado</dt>
-          <dd>Design e Multimédia</dd>
-        </div>
-        <div data-reveal style="--delay: 2">
-          <dt class="caption">Instituição</dt>
-          <dd>FCTUC, Universidade de Coimbra</dd>
-        </div>
-        <div data-reveal style="--delay: 3">
-          <dt class="caption">Apoio</dt>
-          <dd>Cinemateca Portuguesa – Museu do Cinema</dd>
-        </div>
-        <div data-reveal style="--delay: 4">
-          <dt class="caption">Ano letivo</dt>
-          <dd>2026/2027</dd>
-        </div>
-      </dl>
     </div>
   </section>
+
   <script>
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // Ligados ao scroll, para nada se mexer sozinho (WCAG 2.2.2):
-    // o código de tempo avança uma imagem (1/24 s) por píxel e a faixa desliza.
-    const tc = document.querySelector('[data-timecode]');
-    const marquee = document.querySelector<HTMLElement>('.marquee-track');
     const pad = (n: number) => String(n).padStart(2, '0');
+
+    // Capa: a abertura (as formas montam o "Og") toca uma vez; "Repetir" volta a tocá-la.
+    // O código de tempo conta só enquanto toca, para nada se mexer sozinho mais de 5 s.
+    const stage = document.querySelector<HTMLElement>('[data-stage]')!;
+    const screen = stage.querySelector<HTMLElement>('[data-screen]')!;
+    const tc = stage.querySelector<HTMLElement>('[data-tc]')!;
+    const LENGTH = 2800;
+    let raf = 0;
+    const play = () => {
+      screen.classList.remove('is-playing');
+      void screen.offsetWidth; // recomeça as animações CSS
+      screen.classList.add('is-playing');
+      cancelAnimationFrame(raf);
+      let t0 = -1;
+      const tick = (t: number) => {
+        if (t0 < 0) t0 = t;
+        const ms = reduce ? LENGTH : Math.min(t - t0, LENGTH);
+        const f = Math.floor((ms * 24) / 1000);
+        tc.textContent = `00:00:${pad(Math.floor(f / 24))}:${pad(f % 24)}`;
+        if (ms < LENGTH) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    stage.querySelector('[data-replay]')!.addEventListener('click', play);
+
+    // Se a abertura começa abaixo da dobra (telemóveis pequenos ou deitados), só toca quando aparece.
+    const r = screen.getBoundingClientRect();
+    if (r.top + r.height / 2 <= innerHeight) play();
+    else {
+      screen.classList.remove('is-playing');
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          io.disconnect();
+          play();
+        },
+        { threshold: 0.5 },
+      );
+      io.observe(screen);
+    }
+
+    // As formas e os cursores seguem o rato com profundidades diferentes (só quando o rato se mexe).
+    if (!reduce) {
+      let ticking = false;
+      let mx = 0;
+      let my = 0;
+      addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        mx = (e.clientX / innerWidth) * 2 - 1;
+        my = (e.clientY / innerHeight) * 2 - 1;
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          stage.style.setProperty('--mx', mx.toFixed(3));
+          stage.style.setProperty('--my', my.toFixed(3));
+        });
+      });
+    }
+
+    // Faixa: desliza com o scroll.
+    const marquee = document.querySelector<HTMLElement>('.marquee-track');
     let half = 0;
     const measure = () => (half = (marquee?.scrollWidth ?? 0) / 2);
     let ticking = false;
-    const update = () => {
+    const slide = () => {
       ticking = false;
-      if (tc && scrollY < innerHeight) {
-        const f = Math.round(scrollY);
-        const s = Math.floor(f / 24);
-        tc.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f % 24)}`;
-      }
       if (marquee && half && !reduce) marquee.style.transform = `translateX(${-((scrollY * 0.4) % half)}px)`;
     };
     addEventListener(
@@ -238,7 +412,7 @@ const entradas = [
       () => {
         if (!ticking) {
           ticking = true;
-          requestAnimationFrame(update);
+          requestAnimationFrame(slide);
         }
       },
       { passive: true },
@@ -246,7 +420,6 @@ const entradas = [
     addEventListener('resize', measure);
     document.fonts.ready.then(measure);
     measure();
-    update();
 
     // Carrossel: scroll nativo (toque, trackpad, teclado) + botões e barra de progresso.
     for (const root of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
@@ -280,141 +453,248 @@ const entradas = [
 </Base>
 
 <style>
-  /* Capa */
+  /* Capa: tela com grelha de pontos, como num canvas */
   .hero {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    min-height: 100svh;
-    padding-top: var(--header-h);
-    overflow: hidden;
-    background: var(--color-night);
-    color: var(--color-night-text);
-  }
-
-  .hero-img {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-    translate: 0 var(--py, 0px);
-    scale: 1.06;
-    animation: hero-in 2.2s var(--ease-out) both;
-  }
-
-  @keyframes hero-in {
-    from {
-      opacity: 0;
-      scale: 1.18;
-    }
-  }
-
-  .hero-shade {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
+    padding-block: calc(var(--header-h) + var(--space-5)) var(--space-6);
     background:
-      linear-gradient(90deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.18) 48%, rgba(0, 0, 0, 0.5) 100%),
-      linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.55) 100%);
+      radial-gradient(circle at 1px 1px, rgba(10, 10, 10, 0.13) 1px, transparent 0) 0 0 / 24px 24px,
+      var(--color-paper);
   }
 
-  /* Grão de película */
-  .hero-shade::after {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    opacity: 0.14;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grain 0.9s steps(6) 5;
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: baseline;
+    align-content: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    min-height: calc(100svh - var(--header-h) - var(--space-5) - var(--space-6));
   }
 
-  @keyframes grain {
-    0% { transform: translate(0, 0); }
-    20% { transform: translate(-8%, 5%); }
-    40% { transform: translate(6%, -9%); }
-    60% { transform: translate(-4%, 11%); }
-    80% { transform: translate(10%, 3%); }
-    100% { transform: translate(-6%, -6%); }
-  }
-
-  .hero-content {
-    padding-bottom: clamp(6rem, 16vh, 11rem);
+  .kicker {
+    color: var(--color-graphite);
+    animation: rise 900ms var(--ease-out) 100ms both;
   }
 
   .hero-title {
-    font-weight: 500;
-    font-size: clamp(1.9rem, 1.1rem + 2.4vw, 3.25rem);
-    line-height: 1.14;
-    letter-spacing: -0.02em;
+    margin-block: var(--space-4) var(--space-5);
+    font-size: clamp(2.4rem, 1.3rem + 3vw, 4.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
   }
 
-  .line {
-    display: block;
+  .wm {
+    display: inline-block;
     overflow: hidden;
     padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+    vertical-align: top;
   }
 
-  .line > span {
-    display: block;
-    animation: line-in 1.2s var(--ease-out) both;
-    animation-delay: calc(var(--i) * 110ms + 350ms);
+  .wm > span {
+    display: inline-block;
+    animation: word-in 1s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 45ms + 200ms);
   }
 
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @keyframes line-in {
+  @keyframes word-in {
     from {
       transform: translateY(105%);
     }
   }
 
-  .hero-caption {
-    display: grid;
-    margin-top: var(--space-4);
-    color: rgba(245, 245, 243, 0.78);
-    animation: rise 1s var(--ease-out) 900ms both;
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    animation: rise 900ms var(--ease-out) 900ms both;
   }
 
-  .hero-foot {
-    position: absolute;
-    inset: auto 0 0;
-    left: 50%;
-    translate: -50% 0;
+  .button--ghost {
+    background: var(--color-paper);
+  }
+
+  /* Palco: um "frame" com nome, código de tempo e botão, como no Figma */
+  .stage {
+    position: relative;
+    animation: rise 1s var(--ease-out) 300ms both;
+  }
+
+  .stage-bar {
     display: flex;
-    justify-content: space-between;
-    padding-bottom: var(--space-4);
-    color: rgba(245, 245, 243, 0.78);
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    color: var(--color-graphite);
+  }
+
+  .stage-name {
+    margin-right: auto;
+  }
+
+  .frame-icon {
+    color: var(--color-accent);
+  }
+
+  .tc {
     font-variant-numeric: tabular-nums;
   }
 
-  .cue {
+  .replay {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+
+  .replay:hover {
+    border-color: var(--color-ink);
+  }
+
+  .screen {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-card);
+    background: var(--color-accent);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
+  }
+
+  .screen svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .par {
+    transform: translate(calc(var(--mx, 0) * var(--depth) * 1px), calc(var(--my, 0) * var(--depth) * 1px));
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .shape {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Cada forma entra de um lado diferente e encaixa no "Og" */
+  .is-playing .shape {
+    animation: assemble 1.1s cubic-bezier(0.2, 1.35, 0.4, 1) both;
+    animation-delay: calc(var(--i) * 220ms + 250ms);
+  }
+
+  @keyframes assemble {
+    from {
+      opacity: 0;
+      transform: var(--from);
+    }
+  }
+
+  .credits {
+    position: absolute;
+    inset: auto 0 7%;
+    padding-inline: var(--space-3);
+    color: #fff;
+    font-size: var(--text-caption);
+    letter-spacing: 0.3em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* Enquanto espera para tocar (abaixo da dobra), a abertura não mostra já o fim */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .screen:not(.is-playing) :is(.shape, .credits) {
+      opacity: 0;
+    }
+  }
+
+  .is-playing .credits {
+    animation: rise 900ms var(--ease-out) 1.9s both;
+  }
+
+  /* Cursores de "colaboradores", com o nome de cada elemento do genérico */
+  .cursors {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cursor {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    display: flex;
+    width: max-content;
+    align-items: flex-start;
+    gap: 2px;
+    translate: calc(var(--mx, 0) * var(--depth) * 1px) calc(var(--my, 0) * var(--depth) * 1px);
+    transition: translate 1.2s var(--ease-out);
+    animation: cursor-in 1.2s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 300ms + 900ms);
+  }
+
+  @keyframes cursor-in {
+    from {
+      opacity: 0;
+      transform: translate(-3rem, 2rem);
+    }
+  }
+
+  .cursor svg {
+    width: 1.1rem;
+    fill: var(--c);
+    stroke: var(--color-ink);
+    stroke-width: 1;
+  }
+
+  .cursor span {
+    margin-top: 0.9rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-pill);
+    background: var(--c);
+    color: var(--color-ink);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Faixa */
+  .marquee {
+    overflow: hidden;
+    padding-block: var(--space-4);
+    background: var(--color-lime);
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+
+  .marquee-group {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
   }
 
-  .cue::after {
-    content: '';
-    width: 1px;
-    height: 2.5rem;
-    background: currentColor;
-    transform-origin: top;
-    animation: cue 2.2s var(--ease-out) 2 forwards;
+  .marquee-item {
+    padding-inline: var(--space-4);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
   }
 
-  @keyframes cue {
-    0% { transform: translateY(0) scaleY(0); }
-    50% { transform: translateY(0) scaleY(1); }
-    100% { transform: translateY(100%) scaleY(0); }
+  .marquee-item:nth-child(4n + 3) {
+    font-style: italic;
+  }
+
+  .marquee-shape {
+    width: auto;
+    height: clamp(1.5rem, 1rem + 2vw, 3.25rem);
+    fill: var(--color-ink);
   }
 
   /* Manifesto */
@@ -442,23 +722,300 @@ const entradas = [
     letter-spacing: -0.03em;
   }
 
+  /* O fim da frase ganha um marcador lima à medida que se acende */
+  .mark {
+    background: linear-gradient(var(--color-lime), var(--color-lime)) no-repeat 0 85% / 100% 0.4em;
+  }
+
+  :global(.js) .mark {
+    background-size: calc(clamp(0, var(--p, 0) * var(--n) - var(--i), 1) * 100%) 0.4em;
+  }
+
   .manifesto-aside {
     grid-column: 8 / -1;
-    display: grid;
-    gap: var(--space-4);
-    justify-items: start;
     color: var(--color-graphite);
   }
 
-  /* Sem JavaScript os botões não fazem nada; o carrossel continua a deslizar */
-  :global(html:not(.js)) .controls {
-    display: none;
+  /* Elementos: grelha "bento" com uma pequena animação em cada cartão */
+  .elements {
+    padding-bottom: var(--space-7);
+  }
+
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .el {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-height: 22rem;
+    padding: var(--space-4);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+
+  .el h3 {
+    font-size: var(--text-heading-lg);
+  }
+
+  .el p {
+    max-width: 26rem;
+    font-size: var(--text-sm);
+  }
+
+  .el-visual {
+    position: relative;
+    flex: 1;
+    min-height: 8rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .el--tipo {
+    grid-column: span 7;
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .el--comp {
+    grid-column: span 5;
+    background: var(--color-coral);
+  }
+
+  .el--anim {
+    grid-column: span 4;
+    background: var(--color-lime);
+  }
+
+  .el--ritmo {
+    grid-column: span 4;
+    background: var(--color-pink);
+  }
+
+  .el--som {
+    grid-column: span 4;
+    background: var(--color-sun);
+  }
+
+  /* Tipografia: a mesma palavra em duas letras; troca ao passar o rato */
+  .spec {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: center;
+    font-size: clamp(5rem, 3rem + 8vw, 10rem);
+    line-height: 1;
+  }
+
+  .spec span {
+    grid-area: 1 / 1;
+    transition:
+      opacity 500ms ease,
+      transform 700ms var(--ease-out);
+  }
+
+  .spec span:first-child {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
+  }
+
+  .spec span:last-child {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.06em;
+    opacity: 0;
+    transform: translateY(30%);
+  }
+
+  .el--tipo:hover .spec span:first-child {
+    opacity: 0;
+    transform: translateY(-30%);
+  }
+
+  .el--tipo:hover .spec span:last-child {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Composição: quatro blocos que trocam de lugar */
+  .blk {
+    position: absolute;
+    width: 28%;
+    aspect-ratio: 1;
+    background: var(--color-ink);
+    transition:
+      transform 800ms var(--ease-out),
+      border-radius 800ms var(--ease-out);
+  }
+
+  .blk:nth-child(1) {
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+  }
+
+  .blk:nth-child(2) {
+    left: 32%;
+    top: 0;
+    border-radius: 999px 0 0 999px;
+    width: 14%;
+  }
+
+  .blk:nth-child(3) {
+    left: 50%;
+    top: 0;
+    width: 14%;
+    border-radius: 50%;
+  }
+
+  .blk:nth-child(4) {
+    left: 68%;
+    top: 30%;
+    width: 18%;
+    border-radius: 0 0 0 100%;
+  }
+
+  .el--comp:hover .blk:nth-child(1) {
+    transform: translate(150%, 25%) scale(0.7);
+  }
+
+  .el--comp:hover .blk:nth-child(2) {
+    transform: translate(-220%, 40%) rotate(180deg);
+  }
+
+  .el--comp:hover .blk:nth-child(3) {
+    transform: translate(180%, 60%) scale(1.6);
+  }
+
+  .el--comp:hover .blk:nth-child(4) {
+    transform: translate(-300%, -20%) rotate(-90deg);
+  }
+
+  /* Animação: uma bola que salta pelo cartão */
+  .ball {
+    position: absolute;
+    left: 0;
+    bottom: 1.2rem;
+    width: 2.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--color-ink);
+    transition: translate 1.4s var(--ease-out);
+  }
+
+  .floor {
+    position: absolute;
+    inset: auto 0 1rem;
+    height: 2px;
+    background: var(--color-ink);
+  }
+
+  .el--anim .el-visual {
+    container-type: inline-size;
+  }
+
+  :global(.js) .el--anim.is-in .ball {
+    animation: bounce 1.6s cubic-bezier(0.3, 0, 0.5, 1) 400ms both;
+  }
+
+  /* O percurso é a largura do cartão (cqi) menos a da bola, para acabar sempre no fim da linha */
+  @keyframes bounce {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(calc((100cqi - 2.5rem) * 0.02), -300%); }
+    40% { transform: translate(calc((100cqi - 2.5rem) * 0.46), 0) scale(1.25, 0.8); }
+    60% { transform: translate(calc((100cqi - 2.5rem) * 0.7), -150%); }
+    80% { transform: translate(calc((100cqi - 2.5rem) * 0.92), 0) scale(1.15, 0.85); }
+    100% { transform: translate(calc(100cqi - 2.5rem), 0); }
+  }
+
+  .el--anim:hover .ball {
+    translate: calc((100cqi - 2.5rem) * -0.92) 0;
+  }
+
+  /* Ritmo: uma linha de montagem com a cabeça de leitura a passar */
+  .el--ritmo .el-visual {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .clip {
+    height: 3.25rem;
+    border-radius: var(--radius-fine);
+    background: var(--color-ink);
+    transition: transform 500ms var(--ease-out);
+  }
+
+  .clip:nth-child(even) {
+    height: 2rem;
+    opacity: 0.55;
+  }
+
+  .el--ritmo:hover .clip {
+    transform: scaleY(1.35);
+  }
+
+  .head {
+    position: absolute;
+    inset: 15% auto 15% 0;
+    width: 2px;
+    background: var(--color-accent);
+  }
+
+  :global(.js) .el--ritmo.is-in .head {
+    animation: sweep 2.4s linear 400ms both;
+  }
+
+  @keyframes sweep {
+    to {
+      left: 100%;
+    }
+  }
+
+  /* Som: forma de onda que cresce e muda com o rato */
+  .el--som .el-visual {
+    display: flex;
+    align-items: center;
+    gap: 3%;
+  }
+
+  .bar {
+    flex: 1;
+    height: calc(var(--h) * 100%);
+    border-radius: var(--radius-pill);
+    background: var(--color-ink);
+    transform-origin: center;
+    transition: transform 500ms var(--ease-out);
+    transition-delay: calc(var(--i) * 20ms);
+  }
+
+  :global(.js) .el--som.is-in .bar {
+    animation: grow 900ms var(--ease-out) both;
+    animation-delay: calc(var(--i) * 40ms + 300ms);
+  }
+
+  @keyframes grow {
+    from {
+      transform: scaleY(0.05);
+    }
+  }
+
+  .el--som:hover .bar:nth-child(odd) {
+    transform: scaleY(0.4);
+  }
+
+  .el--som:hover .bar:nth-child(3n) {
+    transform: scaleY(1.1);
   }
 
   /* Destaques */
   .featured {
     padding-bottom: var(--space-7);
-    border-top: 1px solid var(--color-line);
   }
 
   .featured-head {
@@ -466,7 +1023,7 @@ const entradas = [
     grid-template-columns: 1fr auto;
     align-items: end;
     gap: var(--space-3) var(--space-4);
-    padding-block: var(--space-6) var(--space-5);
+    padding-bottom: var(--space-5);
   }
 
   .note {
@@ -479,6 +1036,12 @@ const entradas = [
     grid-column: 2;
     display: flex;
     gap: var(--space-2);
+  }
+
+  :global(html:not(.js)) .controls,
+  :global(html:not(.js)) .replay,
+  :global(html:not(.js)) .tc {
+    display: none;
   }
 
   .round {
@@ -494,8 +1057,7 @@ const entradas = [
     cursor: pointer;
     transition:
       background-color 240ms ease,
-      color 240ms ease,
-      opacity 240ms ease;
+      color 240ms ease;
   }
 
   .round:hover:not([aria-disabled='true']) {
@@ -503,13 +1065,16 @@ const entradas = [
     color: var(--color-paper);
   }
 
+  /* Esbate só o botão; o anel de foco continua bem visível */
   .round[aria-disabled='true'] {
-    opacity: 0.3;
+    color: rgb(10 10 10 / 0.3);
     cursor: default;
   }
 
+  /* relative: o texto só para leitores de ecrã fica dentro da faixa e não alarga a página */
   .track {
     --edge: max(var(--gutter), (100% - var(--width-content)) / 2 + var(--gutter));
+    position: relative;
     display: flex;
     gap: var(--space-4);
     margin: 0;
@@ -542,11 +1107,25 @@ const entradas = [
     gap: var(--space-3);
     aspect-ratio: 16 / 9;
     padding: var(--space-5);
-    border-radius: var(--radius-control);
-    background: var(--color-night);
-    color: var(--color-night-text);
+    border-radius: var(--radius-card);
+    background: var(--color-accent);
+    color: #fff;
     text-align: center;
-    overflow: hidden;
+    overflow: clip;
+    min-height: 0;
+  }
+
+  .frame--1 {
+    background: var(--color-coral);
+    color: var(--color-ink);
+    place-content: end start;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .frame--2 {
+    background: var(--color-lime);
+    color: var(--color-ink);
   }
 
   .tag {
@@ -554,7 +1133,7 @@ const entradas = [
     top: var(--space-3);
     left: var(--space-3);
     padding: 0.3rem 0.7rem;
-    border: 1px solid rgba(245, 245, 243, 0.35);
+    border: 1px solid currentColor;
     border-radius: var(--radius-pill);
     font-size: var(--text-caption);
     letter-spacing: 0.04em;
@@ -566,21 +1145,14 @@ const entradas = [
     font-size: var(--text-caption);
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--color-night-muted);
   }
 
   .frame-title {
+    position: relative;
     font-family: var(--font-display);
-    font-size: clamp(1.75rem, 1rem + 3vw, 3.75rem);
+    font-size: clamp(1.25rem, 1rem + 3vw, 3.75rem);
     line-height: 1;
     letter-spacing: -0.02em;
-  }
-
-  /* Três composições de cartão de título, para variar o ritmo */
-  .frame--1 {
-    place-content: end start;
-    justify-items: start;
-    text-align: left;
   }
 
   .frame--1 .frame-title {
@@ -592,6 +1164,26 @@ const entradas = [
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+  }
+
+  /* As formas do "Og" espreitam no canto e deslizam ao passar o rato */
+  .frame-shapes {
+    position: absolute;
+    right: -4%;
+    bottom: -12%;
+    width: 38%;
+    fill: currentColor;
+    opacity: 0.18;
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .frame--1 .frame-shapes {
+    top: -14%;
+    bottom: auto;
+  }
+
+  .slide:hover .frame-shapes {
+    transform: translate(-6%, -6%) rotate(-6deg);
   }
 
   .slide-meta {
@@ -629,47 +1221,9 @@ const entradas = [
     transition: transform 160ms linear;
   }
 
-  /* Faixa */
-  .marquee {
-    overflow: hidden;
-    padding-block: var(--space-5);
-    border-block: 1px solid var(--color-line);
-  }
-
-  .marquee-track {
-    display: flex;
-    width: max-content;
-  }
-
-  .marquee-group {
-    display: flex;
-    align-items: center;
-  }
-
-  .marquee-item {
-    padding-inline: var(--space-4);
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
-    line-height: 1;
-    letter-spacing: -0.03em;
-    white-space: nowrap;
-  }
-
-  .marquee-item:nth-child(4n + 3) {
-    font-style: italic;
-  }
-
-  .dot {
-    width: 0.6em;
-    height: 0.6em;
-    border-radius: 50%;
-    background: currentColor;
-    font-size: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
-  }
-
-  /* Entradas */
+  /* Entradas: ao passar o rato, a forma enche o cartão com a sua cor */
   .entries {
-    padding-block: var(--space-7);
+    padding-bottom: var(--space-7);
   }
 
   .cards {
@@ -682,6 +1236,9 @@ const entradas = [
   }
 
   .card {
+    --c: var(--color-accent);
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -691,15 +1248,44 @@ const entradas = [
     border-radius: var(--radius-card);
     background: var(--color-panel);
     text-decoration: none;
-    transition: background-color 400ms ease;
+    overflow: hidden;
+    transition: color 400ms ease;
   }
 
-  .card:hover {
-    background: var(--color-mist);
+  .card--1 {
+    --c: var(--color-coral);
   }
 
-  .card .caption {
-    color: var(--color-graphite);
+  .card--2 {
+    --c: var(--color-lime);
+  }
+
+  .card--3 {
+    --c: var(--color-pink);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: var(--space-4);
+    top: 5.5rem;
+    width: 5.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--c);
+    transform: scale(0);
+    transition: transform 700ms var(--ease-out);
+  }
+
+  .card:hover::before,
+  .card:focus-visible::before {
+    transform: scale(14);
+  }
+
+  .card--0:hover,
+  .card--0:focus-visible {
+    color: #fff;
   }
 
   .card-title {
@@ -711,8 +1297,8 @@ const entradas = [
 
   .card-text {
     min-height: 3lh; /* títulos alinhados mesmo com descrições de alturas diferentes */
-    color: var(--color-graphite);
     font-size: var(--text-sm);
+    opacity: 0.85;
   }
 
   .card .arrow {
@@ -724,72 +1310,56 @@ const entradas = [
     transform: translateX(6px);
   }
 
-  /* Formas do logótipo, que se transformam ao passar o rato */
-  .shape {
+  .shape-mini {
     margin-top: var(--space-5);
     width: 5.5rem;
     height: 5.5rem;
-    background: var(--color-ink);
-    transition:
-      transform 700ms var(--ease-out),
-      border-radius 700ms var(--ease-out),
-      width 700ms var(--ease-out),
-      box-shadow 700ms var(--ease-out);
+    background: var(--c);
+    transition: transform 700ms var(--ease-out);
   }
 
-  .shape--0 {
+  .shape-mini--0 {
     border-radius: 50%;
   }
 
-  .card:hover .shape--0 {
-    border-radius: 50% 50% 0 0;
-  }
-
-  .shape--1 {
+  .shape-mini--1 {
     height: 1.4rem;
     border-radius: var(--radius-pill);
   }
 
-  .card:hover .shape--1 {
-    width: 100%;
-  }
-
-  .shape--2 {
+  .shape-mini--2 {
     height: 2.75rem;
     border-radius: 5.5rem 5.5rem 0 0;
   }
 
-  .card:hover .shape--2 {
-    transform: translateY(2.75rem) rotate(180deg);
-  }
-
-  .shape--3 {
+  .shape-mini--3 {
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50%;
-    box-shadow: 2rem 0 0 0 var(--color-ink);
+    box-shadow: 2rem 0 0 0 var(--c);
   }
 
-  .card:hover .shape--3 {
-    box-shadow: 4.5rem 0 0 0 var(--color-ink);
+  .card:hover .shape-mini {
+    transform: rotate(-12deg) scale(0.9);
   }
 
   /* Projeto */
   .project {
-    padding-block: var(--space-7);
-    border-top: 1px solid var(--color-line);
+    padding-bottom: var(--space-7);
   }
 
-  .project-grid {
+  .project-panel {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-6);
+    padding: clamp(1.5rem, 5vw, 4.5rem);
+    border-radius: var(--radius-card);
+    background: var(--color-lilac);
   }
 
   .project-text {
     max-width: var(--width-text);
     margin-block: var(--space-4) var(--space-5);
-    color: var(--color-graphite);
   }
 
   .facts {
@@ -801,12 +1371,12 @@ const entradas = [
     grid-template-columns: 9rem 1fr;
     gap: var(--space-3);
     padding-block: var(--space-4);
-    border-top: 1px solid var(--color-line);
+    border-top: 1px solid rgba(77, 73, 252, 0.25);
   }
 
   .facts dt {
     padding-top: 0.35em;
-    color: var(--color-graphite);
+    color: var(--color-accent);
   }
 
   .facts dd {
@@ -817,39 +1387,78 @@ const entradas = [
   }
 
   @media (max-width: 61.99rem) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
     .label,
     .manifesto-text,
     .manifesto-aside {
       grid-column: 1 / -1;
     }
 
+    .el--tipo,
+    .el--comp {
+      grid-column: span 6;
+    }
+
+    .el--anim,
+    .el--ritmo,
+    .el--som {
+      grid-column: span 12;
+      min-height: 18rem;
+    }
+
     .cards {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .project-grid {
+    .project-panel {
       grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 35.99rem) {
-    /* As linhas da capa correm seguidas em ecrãs estreitos */
-    .line,
-    .line > span {
-      display: inline;
+  /* Telemóvel deitado: a abertura cabe inteira no ecrã, por baixo do cabeçalho */
+  @media (orientation: landscape) and (max-height: 30rem) {
+    .stage {
+      width: min(100%, calc((100svh - 7.5rem) * 1.6));
+      margin-inline: auto;
     }
 
-    .line > span {
-      animation-name: fade-in;
+    .cursor--som {
+      display: none;
+    }
+  }
+
+  @media (max-width: 35.99rem) {
+    .el--tipo,
+    .el--comp {
+      grid-column: span 12;
+    }
+
+    .el {
+      min-height: 18rem;
+    }
+
+    /* Créditos em duas linhas no máximo, para não tocarem nas formas */
+    .credits {
+      letter-spacing: 0.12em;
+    }
+
+    /* Espaço para a etiqueta "Exemplo fictício" não tocar no título */
+    .frame {
+      padding-top: 3.5rem;
+    }
+
+    /* No ecrã pequeno os créditos ocupam duas linhas e o cursor "Som" taparia o texto */
+    .cursor--som {
+      display: none;
     }
 
     .frame-credit,
     .frame-year {
       display: none;
-    }
-
-    .frame-title {
-      font-size: 1.25rem;
     }
 
     .cards {

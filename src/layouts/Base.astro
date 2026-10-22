@@ -10,14 +10,12 @@ import textFont from '../assets/fonts/just-sans-400.woff2?url';
 interface Props {
   title?: string;
   description?: string;
-  headerTone?: 'dark' | 'light';
 }
 
 const siteName = 'O Genérico';
 const {
   title,
   description = 'Arquivo e análise de genéricos do cinema português.',
-  headerTone,
 } = Astro.props;
 const pageTitle = title ? `${title} · ${siteName}` : siteName;
 ---
@@ -42,7 +40,7 @@ const pageTitle = title ? `${title} · ${siteName}` : siteName;
   </head>
   <body>
     <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
-    <Header tone={headerTone} />
+    <Header />
     <main id="conteudo" tabindex="-1">
       <slot />
     </main>
@@ -62,10 +60,9 @@ const pageTitle = title ? `${title} · ${siteName}` : siteName;
       );
       document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
 
-      // Ligado ao scroll: texto que se acende palavra a palavra ([data-words]) e parallax ([data-parallax]).
+      // Texto que se acende palavra a palavra com o scroll ([data-words]).
       const words = [...document.querySelectorAll<HTMLElement>('[data-words]')];
-      const parallax = document.querySelector<HTMLElement>('[data-parallax]');
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && (words.length || parallax)) {
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && words.length) {
         let ticking = false;
         const update = () => {
           ticking = false;
@@ -73,9 +70,6 @@ const pageTitle = title ? `${title} · ${siteName}` : siteName;
             const r = el.getBoundingClientRect();
             const p = (innerHeight * 0.9 - r.top) / (innerHeight * 0.35 + r.height);
             el.style.setProperty('--p', String(Math.min(Math.max(p, 0), 1)));
-          }
-          if (parallax && scrollY < innerHeight * 1.5) {
-            parallax.style.setProperty('--py', `${scrollY * 0.3}px`);
           }
         };
         addEventListener(

@@ -1,7 +1,7 @@
 /*
  * Sistema visual de O Genérico.
- * Galeria branca (canvas), tinta preta, um só acento, e o escuro reservado
- * ao "ecrã": a abertura (hero) e o fecho (rodapé), como num genérico.
+ * Galeria branca (canvas) e tinta preta, com o índigo como acento principal
+ * e as cores das formas do "Og" (coral, lima, rosa, sol, lilás) para dar vida.
  */
 
 @font-face {
@@ -46,10 +46,13 @@
   --color-panel: #f1f1ef;
   --color-mist: #e2e2e2;
   --color-graphite: #595959;
-  --color-night: #0b0b0b;
-  --color-night-text: #f5f5f3;
-  --color-night-muted: #a8a8a3;
+  /* Índigo da identidade + paleta das formas do logótipo (O, meio disco, ponto, triângulo) */
   --color-accent: #4d49fc;
+  --color-coral: #ff7a59;
+  --color-lime: #c9f26b;
+  --color-pink: #f6a8dc;
+  --color-sun: #ffd54a;
+  --color-lilac: #ecebff;
   --color-line: rgba(10, 10, 10, 0.14);
 
   --font-display: 'Behind The Nineties', Georgia, 'Times New Roman', serif;
@@ -253,8 +256,10 @@ svg {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 
@@ -263,8 +268,9 @@ svg {
     transform: none;
   }
 
-  .js [data-words] .w {
-    opacity: 1;
+  /* Texto e sublinhado do manifesto já acesos */
+  .js [data-words] {
+    --p: 1 !important;
   }
 }
 
